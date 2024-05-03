@@ -1,0 +1,613 @@
+# Makefile.in generated automatically by automake 1.5 from Makefile.am.
+
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+# Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+@SET_MAKE@
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_HEADER = $(INSTALL_DATA)
+transform = @program_transform_name@
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AMTAR = @AMTAR@
+AS = @AS@
+AWK = @AWK@
+CC = @CC@
+CPP = @CPP@
+CXX = @CXX@
+DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+MAKEDEPEND = @MAKEDEPEND@
+OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+STRIP = @STRIP@
+VERSION = @VERSION@
+am__include = @am__include@
+am__quote = @am__quote@
+install_sh = @install_sh@
+
+SUBDIRS = abyss
+lib_LTLIBRARIES = libeasysoap.la
+lib_LIBRARIES = libeasysoap.a
+THESOURCES = \
+    SOAPBase64.cpp SOAPBody.cpp SOAPTypeTraits.cpp \
+    SOAPBodyHandler.cpp SOAPCGIServer.cpp SOAPClientSocketImp.cpp \
+    SOAPDebugger.cpp SOAPEnvelope.cpp SOAPEnvelopeHandler.cpp \
+    SOAPFault.cpp SOAPFaultHandler.cpp SOAPHeader.cpp \
+    SOAPHeaderHandler.cpp SOAPMethod.cpp SOAPMethodHandler.cpp \
+    SOAPPacketWriter.cpp SOAPParameter.cpp SOAPParameterHandler.cpp \
+    SOAPParse.cpp SOAPProxy.cpp SOAPNamespaces.cpp \
+    SOAPResponse.cpp SOAPSecureSocketImp.cpp SOAPServerDispatch.cpp \
+    SOAPSocket.cpp SOAPStructHandler.cpp SOAPUrl.cpp \
+    SOAPonHTTP.cpp XMLParser.cpp SOAPHTTPServer.cpp
+
+libeasysoap_la_SOURCES = $(THESOURCES)
+libeasysoap_a_SOURCES = $(THESOURCES)
+noinst_HEADERS = \
+    SOAPBodyHandler.h SOAPClientSocketImp.h \
+    SOAPEnvelopeHandler.h SOAPFaultHandler.h SOAPHeaderHandler.h \
+    SOAPMethodHandler.h SOAPParameterHandler.h \
+    SOAPSecureSocketImp.h SOAPStructHandler.h 
+
+INCLUDES = -I@top_srcdir@/include -I@top_srcdir@/src/abyss/src
+
+libeasysoap_la_LDFLAGS = -no-undefined
+libeasysoap_la_LIBADD = abyss/src/libabyss.la
+
+libeasysoap_a_LIBADD = abyss/src/libabyss.la
+
+EXTRA_DIST = easysoap.dsp SOAPISAPIServer.cpp isapi.cpp isapi.def
+subdir = src
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = $(top_builddir)/include/es_config.h
+CONFIG_CLEAN_FILES =
+LIBRARIES = $(lib_LIBRARIES)
+
+libeasysoap_a_AR = $(AR) cru
+libeasysoap_a_DEPENDENCIES = abyss/src/libabyss.la
+am_libeasysoap_a_OBJECTS = SOAPBase64.$(OBJEXT) SOAPBody.$(OBJEXT) \
+	SOAPTypeTraits.$(OBJEXT) SOAPBodyHandler.$(OBJEXT) \
+	SOAPCGIServer.$(OBJEXT) SOAPClientSocketImp.$(OBJEXT) \
+	SOAPDebugger.$(OBJEXT) SOAPEnvelope.$(OBJEXT) \
+	SOAPEnvelopeHandler.$(OBJEXT) SOAPFault.$(OBJEXT) \
+	SOAPFaultHandler.$(OBJEXT) SOAPHeader.$(OBJEXT) \
+	SOAPHeaderHandler.$(OBJEXT) SOAPMethod.$(OBJEXT) \
+	SOAPMethodHandler.$(OBJEXT) SOAPPacketWriter.$(OBJEXT) \
+	SOAPParameter.$(OBJEXT) SOAPParameterHandler.$(OBJEXT) \
+	SOAPParse.$(OBJEXT) SOAPProxy.$(OBJEXT) \
+	SOAPNamespaces.$(OBJEXT) SOAPResponse.$(OBJEXT) \
+	SOAPSecureSocketImp.$(OBJEXT) SOAPServerDispatch.$(OBJEXT) \
+	SOAPSocket.$(OBJEXT) SOAPStructHandler.$(OBJEXT) \
+	SOAPUrl.$(OBJEXT) SOAPonHTTP.$(OBJEXT) XMLParser.$(OBJEXT) \
+	SOAPHTTPServer.$(OBJEXT)
+libeasysoap_a_OBJECTS = $(am_libeasysoap_a_OBJECTS)
+LTLIBRARIES = $(lib_LTLIBRARIES)
+
+libeasysoap_la_DEPENDENCIES = abyss/src/libabyss.la
+am_libeasysoap_la_OBJECTS = SOAPBase64.lo SOAPBody.lo SOAPTypeTraits.lo \
+	SOAPBodyHandler.lo SOAPCGIServer.lo SOAPClientSocketImp.lo \
+	SOAPDebugger.lo SOAPEnvelope.lo SOAPEnvelopeHandler.lo \
+	SOAPFault.lo SOAPFaultHandler.lo SOAPHeader.lo \
+	SOAPHeaderHandler.lo SOAPMethod.lo SOAPMethodHandler.lo \
+	SOAPPacketWriter.lo SOAPParameter.lo SOAPParameterHandler.lo \
+	SOAPParse.lo SOAPProxy.lo SOAPNamespaces.lo SOAPResponse.lo \
+	SOAPSecureSocketImp.lo SOAPServerDispatch.lo SOAPSocket.lo \
+	SOAPStructHandler.lo SOAPUrl.lo SOAPonHTTP.lo XMLParser.lo \
+	SOAPHTTPServer.lo
+libeasysoap_la_OBJECTS = $(am_libeasysoap_la_OBJECTS)
+
+DEFS = @DEFS@
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/SOAPBase64.Plo $(DEPDIR)/SOAPBase64.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPBody.Plo $(DEPDIR)/SOAPBody.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPBodyHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPBodyHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPCGIServer.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPCGIServer.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPClientSocketImp.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPClientSocketImp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPDebugger.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPDebugger.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPEnvelope.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPEnvelope.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPEnvelopeHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPEnvelopeHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPFault.Plo $(DEPDIR)/SOAPFault.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPFaultHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPFaultHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPHTTPServer.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPHTTPServer.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPHeader.Plo $(DEPDIR)/SOAPHeader.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPHeaderHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPHeaderHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPMethod.Plo $(DEPDIR)/SOAPMethod.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPMethodHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPMethodHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPNamespaces.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPNamespaces.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPPacketWriter.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPPacketWriter.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPParameter.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPParameter.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPParameterHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPParameterHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPParse.Plo $(DEPDIR)/SOAPParse.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPProxy.Plo $(DEPDIR)/SOAPProxy.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPResponse.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPResponse.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPSecureSocketImp.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPSecureSocketImp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPServerDispatch.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPServerDispatch.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPSocket.Plo $(DEPDIR)/SOAPSocket.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPStructHandler.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPStructHandler.Po \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPTypeTraits.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPTypeTraits.Po $(DEPDIR)/SOAPUrl.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPUrl.Po $(DEPDIR)/SOAPonHTTP.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/SOAPonHTTP.Po $(DEPDIR)/XMLParser.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/XMLParser.Po
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+CXXFLAGS = @CXXFLAGS@
+DIST_SOURCES = $(libeasysoap_a_SOURCES) $(libeasysoap_la_SOURCES)
+HEADERS = $(noinst_HEADERS)
+
+
+RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
+	uninstall-info-recursive all-recursive install-data-recursive \
+	install-exec-recursive installdirs-recursive install-recursive \
+	uninstall-recursive check-recursive installcheck-recursive
+DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
+DIST_SUBDIRS = $(SUBDIRS)
+SOURCES = $(libeasysoap_a_SOURCES) $(libeasysoap_la_SOURCES)
+
+all: all-recursive
+
+.SUFFIXES:
+.SUFFIXES: .cpp .lo .o .obj
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+	-rm -f libtool
+$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --gnu  src/Makefile
+Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) && \
+	  CONFIG_HEADERS= CONFIG_LINKS= \
+	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+
+AR = ar
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
+	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libeasysoap.a: $(libeasysoap_a_OBJECTS) $(libeasysoap_a_DEPENDENCIES) 
+	-rm -f libeasysoap.a
+	$(libeasysoap_a_AR) libeasysoap.a $(libeasysoap_a_OBJECTS) $(libeasysoap_a_LIBADD)
+	$(RANLIB) libeasysoap.a
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(LIBTOOL) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p"; \
+	  $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libeasysoap.la: $(libeasysoap_la_OBJECTS) $(libeasysoap_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libeasysoap_la_LDFLAGS) $(libeasysoap_la_OBJECTS) $(libeasysoap_la_LIBADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT) core *.core
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPBase64.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPBase64.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPBody.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPBody.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPBodyHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPBodyHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPCGIServer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPCGIServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPClientSocketImp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPClientSocketImp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPDebugger.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPDebugger.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPEnvelope.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPEnvelope.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPEnvelopeHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPEnvelopeHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPFault.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPFault.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPFaultHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPFaultHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPHTTPServer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPHTTPServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPHeader.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPHeader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPHeaderHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPHeaderHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPMethod.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPMethodHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPMethodHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPNamespaces.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPNamespaces.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPPacketWriter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPPacketWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPParameter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPParameter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPParameterHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPParameterHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPParse.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPParse.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPProxy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPProxy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPResponse.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPResponse.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPSecureSocketImp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPSecureSocketImp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPServerDispatch.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPServerDispatch.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPSocket.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPSocket.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPStructHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPStructHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPTypeTraits.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPTypeTraits.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPUrl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPUrl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPonHTTP.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SOAPonHTTP.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/XMLParser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/XMLParser.Po@am__quote@
+
+distclean-depend:
+	-rm -rf $(DEPDIR)
+
+.cpp.o:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+.cpp.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXXCOMPILE) -c -o $@ `cygpath -w $<`
+
+.cpp.lo:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LTCXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+CXXDEPMODE = @CXXDEPMODE@
+uninstall-info-am:
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+$(RECURSIVE_TARGETS):
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	case "$@" in \
+	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
+	  *) list='$(SUBDIRS)' ;; \
+	esac; \
+	rev=''; for subdir in $$list; do \
+	  if test "$$subdir" = "."; then :; else \
+	    rev="$$subdir $$rev"; \
+	  fi; \
+	done; \
+	rev="$$rev ."; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	mkid -fID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || etags $(ETAGS_ARGS) $$tags  $$unique $(LISP)
+
+GTAGS:
+	here=`CDPATH=: && cd $(top_builddir) && pwd` \
+	  && cd $(top_srcdir) \
+	  && gtags -i $(GTAGS_ARGS) $$here
+
+distclean-tags:
+	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
+
+DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+
+top_distdir = ..
+distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
+	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
+	    $(mkinstalldirs) "$(distdir)/$$dir"; \
+	  fi; \
+	  if test -d $$d/$$file; then \
+	    cp -pR $$d/$$file $(distdir) \
+	    || exit 1; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || cp -p $$d/$$file $(distdir)/$$file \
+	    || exit 1; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    (cd $$subdir && \
+	      $(MAKE) $(AM_MAKEFLAGS) \
+	        top_distdir="$(top_distdir)" \
+	        distdir=../$(distdir)/$$subdir \
+	        distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+check-am: all-am
+check: check-recursive
+all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS)
+installdirs: installdirs-recursive
+installdirs-am:
+	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(libdir)
+
+install: install-recursive
+install-exec: install-exec-recursive
+install-data: install-data-recursive
+uninstall: uninstall-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+
+installcheck: installcheck-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
+	  `test -z '$(STRIP)' || \
+	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+	@echo "This command is intended for maintainers to use"
+	@echo "it deletes files that may require special tools to rebuild."
+clean: clean-recursive
+
+clean-am: clean-generic clean-libLIBRARIES clean-libLTLIBRARIES \
+	clean-libtool mostlyclean-am
+
+distclean: distclean-recursive
+
+distclean-am: clean-am distclean-compile distclean-depend \
+	distclean-generic distclean-libtool distclean-tags
+
+dvi: dvi-recursive
+
+dvi-am:
+
+info: info-recursive
+
+info-am:
+
+install-data-am:
+
+install-exec-am: install-libLIBRARIES install-libLTLIBRARIES
+
+install-info: install-info-recursive
+
+install-man:
+
+installcheck-am:
+
+maintainer-clean: maintainer-clean-recursive
+
+maintainer-clean-am: distclean-am maintainer-clean-generic
+
+mostlyclean: mostlyclean-recursive
+
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
+
+uninstall-am: uninstall-info-am uninstall-libLIBRARIES \
+	uninstall-libLTLIBRARIES
+
+uninstall-info: uninstall-info-recursive
+
+.PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-am clean \
+	clean-generic clean-libLIBRARIES clean-libLTLIBRARIES \
+	clean-libtool clean-recursive distclean distclean-compile \
+	distclean-depend distclean-generic distclean-libtool \
+	distclean-recursive distclean-tags distdir dvi dvi-am \
+	dvi-recursive info info-am info-recursive install install-am \
+	install-data install-data-am install-data-recursive \
+	install-exec install-exec-am install-exec-recursive \
+	install-info install-info-am install-info-recursive \
+	install-libLIBRARIES install-libLTLIBRARIES install-man \
+	install-recursive install-strip installcheck installcheck-am \
+	installdirs installdirs-am installdirs-recursive \
+	maintainer-clean maintainer-clean-generic \
+	maintainer-clean-recursive mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
+	tags tags-recursive uninstall uninstall-am uninstall-info-am \
+	uninstall-info-recursive uninstall-libLIBRARIES \
+	uninstall-libLTLIBRARIES uninstall-recursive
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
