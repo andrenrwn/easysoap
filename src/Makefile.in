@@ -1,0 +1,901 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AS = @AS@
+AWK = @AWK@
+CC = @CC@
+CPP = @CPP@
+CXX = @CXX@
+DLLTOOL = @DLLTOOL@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+MAKEDEPEND = @MAKEDEPEND@
+MAKEINFO = @MAKEINFO@
+OBJDUMP = @OBJDUMP@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+VERSION = @VERSION@
+
+SUBDIRS = abyss
+lib_LTLIBRARIES = libeasysoap.la
+lib_LIBRARIES = libeasysoap.a
+THESOURCES =      SOAPArrayHandler.cpp SOAPBase64.cpp SOAPBody.cpp     SOAPBodyHandler.cpp SOAPCGIServer.cpp SOAPClientSocketImp.cpp     SOAPDebugger.cpp SOAPEnvelope.cpp SOAPEnvelopeHandler.cpp     SOAPFault.cpp SOAPFaultHandler.cpp SOAPHeader.cpp     SOAPHeaderHandler.cpp SOAPMethod.cpp SOAPMethodHandler.cpp     SOAPPacketWriter.cpp SOAPParameter.cpp SOAPParameterHandler.cpp     SOAPParse.cpp SOAPProxy.cpp SOAPQName.cpp     SOAPResponse.cpp SOAPSecureSocketImp.cpp SOAPServerDispatch.cpp     SOAPSocket.cpp SOAPStructHandler.cpp SOAPUrl.cpp     SOAPonHTTP.cpp XMLParser.cpp SOAPHTTPServer.cpp
+
+libeasysoap_la_SOURCES = $(THESOURCES)
+libeasysoap_a_SOURCES = $(THESOURCES)
+noinst_HEADERS =      SOAPArrayHandler.h SOAPBodyHandler.h SOAPClientSocketImp.h     SOAPEnvelopeHandler.h SOAPFaultHandler.h SOAPHeaderHandler.h     SOAPMethodHandler.h SOAPParameterHandler.h     SOAPSecureSocketImp.h SOAPStructHandler.h 
+
+INCLUDES = -I@top_srcdir@/include -I@top_srcdir@/src/abyss/src
+
+libeasysoap_la_LDFLAGS = -no-undefined
+libeasysoap_la_LIBADD = abyss/src/libabyss.la
+
+libeasysoap_a_LIBADD = abyss/src/libabyss.la
+
+EXTRA_DIST = easysoap.dsp
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../include/es_config.h
+CONFIG_CLEAN_FILES = 
+LIBRARIES =  $(lib_LIBRARIES)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I../include
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libeasysoap_a_DEPENDENCIES =  abyss/src/libabyss.la
+libeasysoap_a_OBJECTS =  SOAPArrayHandler.o SOAPBase64.o SOAPBody.o \
+SOAPBodyHandler.o SOAPCGIServer.o SOAPClientSocketImp.o SOAPDebugger.o \
+SOAPEnvelope.o SOAPEnvelopeHandler.o SOAPFault.o SOAPFaultHandler.o \
+SOAPHeader.o SOAPHeaderHandler.o SOAPMethod.o SOAPMethodHandler.o \
+SOAPPacketWriter.o SOAPParameter.o SOAPParameterHandler.o SOAPParse.o \
+SOAPProxy.o SOAPQName.o SOAPResponse.o SOAPSecureSocketImp.o \
+SOAPServerDispatch.o SOAPSocket.o SOAPStructHandler.o SOAPUrl.o \
+SOAPonHTTP.o XMLParser.o SOAPHTTPServer.o
+AR = ar
+LTLIBRARIES =  $(lib_LTLIBRARIES)
+
+libeasysoap_la_DEPENDENCIES =  abyss/src/libabyss.la
+libeasysoap_la_OBJECTS =  SOAPArrayHandler.lo SOAPBase64.lo SOAPBody.lo \
+SOAPBodyHandler.lo SOAPCGIServer.lo SOAPClientSocketImp.lo \
+SOAPDebugger.lo SOAPEnvelope.lo SOAPEnvelopeHandler.lo SOAPFault.lo \
+SOAPFaultHandler.lo SOAPHeader.lo SOAPHeaderHandler.lo SOAPMethod.lo \
+SOAPMethodHandler.lo SOAPPacketWriter.lo SOAPParameter.lo \
+SOAPParameterHandler.lo SOAPParse.lo SOAPProxy.lo SOAPQName.lo \
+SOAPResponse.lo SOAPSecureSocketImp.lo SOAPServerDispatch.lo \
+SOAPSocket.lo SOAPStructHandler.lo SOAPUrl.lo SOAPonHTTP.lo \
+XMLParser.lo SOAPHTTPServer.lo
+CXXFLAGS = @CXXFLAGS@
+CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+HEADERS =  $(noinst_HEADERS)
+
+DIST_COMMON =  Makefile.am Makefile.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = gtar
+GZIP_ENV = --best
+SOURCES = $(libeasysoap_a_SOURCES) $(libeasysoap_la_SOURCES)
+OBJECTS = $(libeasysoap_a_OBJECTS) $(libeasysoap_la_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .cpp .lo .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps src/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-libLIBRARIES:
+
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+
+distclean-libLIBRARIES:
+
+maintainer-clean-libLIBRARIES:
+
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+.c.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libeasysoap.a: $(libeasysoap_a_OBJECTS) $(libeasysoap_a_DEPENDENCIES)
+	-rm -f libeasysoap.a
+	$(AR) cru libeasysoap.a $(libeasysoap_a_OBJECTS) $(libeasysoap_a_LIBADD)
+	$(RANLIB) libeasysoap.a
+
+mostlyclean-libLTLIBRARIES:
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+
+distclean-libLTLIBRARIES:
+
+maintainer-clean-libLTLIBRARIES:
+
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+libeasysoap.la: $(libeasysoap_la_OBJECTS) $(libeasysoap_la_DEPENDENCIES)
+	$(CXXLINK) -rpath $(libdir) $(libeasysoap_la_LDFLAGS) $(libeasysoap_la_OBJECTS) $(libeasysoap_la_LIBADD) $(LIBS)
+.cpp.o:
+	$(CXXCOMPILE) -c $<
+.cpp.lo:
+	$(LTCXXCOMPILE) -c $<
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
+	  rev="$$subdir $$rev"; \
+	  test "$$subdir" = "." && dot_seen=yes; \
+	done; \
+	test "$$dot_seen" = "no" && rev=". $$rev"; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+   if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+   fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = src
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    chmod 777 $(distdir)/$$subdir; \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir=../$(top_distdir) distdir=../$(distdir)/$$subdir distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+SOAPArrayHandler.lo SOAPArrayHandler.o : SOAPArrayHandler.cpp \
+	SOAPParameterHandler.h ../include/SOAP.h ../include/es_comp.h \
+	../include/es_conf.h ../include/es_config.h \
+	../include/SOAPUtil.h ../include/SOAPHashMap.h \
+	../include/SOAPArray.h ../include/SOAPException.h \
+	../include/SOAPString.h ../include/SOAPQName.h \
+	../include/SOAPParseEventHandler.h ../include/SOAPProxy.h \
+	../include/SOAPMethod.h ../include/SOAPParameter.h \
+	../include/SOAPBase64.h ../include/SOAPNamespaces.h \
+	../include/SOAPEnvelope.h ../include/SOAPBody.h \
+	../include/SOAPFault.h ../include/SOAPHeader.h \
+	../include/SOAPResponse.h ../include/SOAPPacketWriter.h \
+	../include/SOAPParse.h ../include/XMLParser.h \
+	../include/SOAPTransport.h ../include/SOAPStack.h \
+	../include/SOAPUrl.h SOAPArrayHandler.h
+SOAPBase64.lo SOAPBase64.o : SOAPBase64.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPBodyHandler.lo SOAPBodyHandler.o : SOAPBodyHandler.cpp \
+	SOAPBodyHandler.h SOAPMethodHandler.h SOAPParameterHandler.h \
+	../include/SOAP.h ../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h SOAPFaultHandler.h
+SOAPBody.lo SOAPBody.o : SOAPBody.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPCGIServer.lo SOAPCGIServer.o : SOAPCGIServer.cpp \
+	../include/SOAPCGIServer.h ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	../include/SOAPServerDispatch.h \
+	../include/SOAPDispatchHandler.h
+SOAPClientSocketImp.lo SOAPClientSocketImp.o : SOAPClientSocketImp.cpp \
+	../include/SOAPDebugger.h ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	SOAPClientSocketImp.h ../include/SOAPSocket.h
+SOAPDebugger.lo SOAPDebugger.o : SOAPDebugger.cpp \
+	../include/SOAPDebugger.h ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPEnvelopeHandler.lo SOAPEnvelopeHandler.o : SOAPEnvelopeHandler.cpp \
+	SOAPEnvelopeHandler.h SOAPBodyHandler.h SOAPMethodHandler.h \
+	SOAPParameterHandler.h ../include/SOAP.h ../include/es_comp.h \
+	../include/es_conf.h ../include/es_config.h \
+	../include/SOAPUtil.h ../include/SOAPHashMap.h \
+	../include/SOAPArray.h ../include/SOAPException.h \
+	../include/SOAPString.h ../include/SOAPQName.h \
+	../include/SOAPParseEventHandler.h ../include/SOAPProxy.h \
+	../include/SOAPMethod.h ../include/SOAPParameter.h \
+	../include/SOAPBase64.h ../include/SOAPNamespaces.h \
+	../include/SOAPEnvelope.h ../include/SOAPBody.h \
+	../include/SOAPFault.h ../include/SOAPHeader.h \
+	../include/SOAPResponse.h ../include/SOAPPacketWriter.h \
+	../include/SOAPParse.h ../include/XMLParser.h \
+	../include/SOAPTransport.h ../include/SOAPStack.h \
+	../include/SOAPUrl.h SOAPFaultHandler.h SOAPHeaderHandler.h
+SOAPEnvelope.lo SOAPEnvelope.o : SOAPEnvelope.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPFaultHandler.lo SOAPFaultHandler.o : SOAPFaultHandler.cpp \
+	../include/SOAP.h ../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h SOAPFaultHandler.h \
+	SOAPParameterHandler.h
+SOAPFault.lo SOAPFault.o : SOAPFault.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPHeaderHandler.lo SOAPHeaderHandler.o : SOAPHeaderHandler.cpp \
+	../include/SOAPNamespaces.h SOAPHeaderHandler.h \
+	SOAPParameterHandler.h ../include/SOAP.h ../include/es_comp.h \
+	../include/es_conf.h ../include/es_config.h \
+	../include/SOAPUtil.h ../include/SOAPHashMap.h \
+	../include/SOAPArray.h ../include/SOAPException.h \
+	../include/SOAPString.h ../include/SOAPQName.h \
+	../include/SOAPParseEventHandler.h ../include/SOAPProxy.h \
+	../include/SOAPMethod.h ../include/SOAPParameter.h \
+	../include/SOAPBase64.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPHeader.lo SOAPHeader.o : SOAPHeader.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPHTTPServer.lo SOAPHTTPServer.o : SOAPHTTPServer.cpp \
+	../include/SOAPHTTPServer.h ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	../include/SOAPServerDispatch.h \
+	../include/SOAPDispatchHandler.h abyss/src/abyss.h
+SOAPMethodHandler.lo SOAPMethodHandler.o : SOAPMethodHandler.cpp \
+	SOAPMethodHandler.h SOAPParameterHandler.h ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPMethod.lo SOAPMethod.o : SOAPMethod.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPonHTTP.lo SOAPonHTTP.o : SOAPonHTTP.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	../include/SOAPonHTTP.h ../include/SOAPSocket.h \
+	../include/SOAPDebugger.h SOAPSecureSocketImp.h \
+	SOAPClientSocketImp.h
+SOAPPacketWriter.lo SOAPPacketWriter.o : SOAPPacketWriter.cpp \
+	../include/SOAP.h ../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPParameterHandler.lo SOAPParameterHandler.o : \
+	SOAPParameterHandler.cpp SOAPParameterHandler.h \
+	../include/SOAP.h ../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h SOAPArrayHandler.h \
+	SOAPStructHandler.h
+SOAPParameter.lo SOAPParameter.o : SOAPParameter.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPParse.lo SOAPParse.o : SOAPParse.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	SOAPEnvelopeHandler.h SOAPBodyHandler.h SOAPMethodHandler.h \
+	SOAPParameterHandler.h SOAPFaultHandler.h SOAPHeaderHandler.h
+SOAPProxy.lo SOAPProxy.o : SOAPProxy.cpp ../include/SOAPProxy.h \
+	../include/SOAP.h ../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPMethod.h ../include/SOAPParameter.h \
+	../include/SOAPBase64.h ../include/SOAPNamespaces.h \
+	../include/SOAPEnvelope.h ../include/SOAPBody.h \
+	../include/SOAPFault.h ../include/SOAPHeader.h \
+	../include/SOAPResponse.h ../include/SOAPPacketWriter.h \
+	../include/SOAPParse.h ../include/XMLParser.h \
+	../include/SOAPTransport.h ../include/SOAPStack.h \
+	../include/SOAPUrl.h ../include/SOAPonHTTP.h \
+	../include/SOAPSocket.h
+SOAPQName.lo SOAPQName.o : SOAPQName.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPResponse.lo SOAPResponse.o : SOAPResponse.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPSecureSocketImp.lo SOAPSecureSocketImp.o : SOAPSecureSocketImp.cpp \
+	SOAPSecureSocketImp.h SOAPClientSocketImp.h \
+	../include/SOAPSocket.h ../include/SOAP.h ../include/es_comp.h \
+	../include/es_conf.h ../include/es_config.h \
+	../include/SOAPUtil.h ../include/SOAPHashMap.h \
+	../include/SOAPArray.h ../include/SOAPException.h \
+	../include/SOAPString.h ../include/SOAPQName.h \
+	../include/SOAPParseEventHandler.h ../include/SOAPProxy.h \
+	../include/SOAPMethod.h ../include/SOAPParameter.h \
+	../include/SOAPBase64.h ../include/SOAPNamespaces.h \
+	../include/SOAPEnvelope.h ../include/SOAPBody.h \
+	../include/SOAPFault.h ../include/SOAPHeader.h \
+	../include/SOAPResponse.h ../include/SOAPPacketWriter.h \
+	../include/SOAPParse.h ../include/XMLParser.h \
+	../include/SOAPTransport.h ../include/SOAPStack.h \
+	../include/SOAPUrl.h
+SOAPServerDispatch.lo SOAPServerDispatch.o : SOAPServerDispatch.cpp \
+	../include/SOAPServerDispatch.h ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	../include/SOAPDispatchHandler.h
+SOAPSocket.lo SOAPSocket.o : SOAPSocket.cpp ../include/SOAPSocket.h \
+	../include/SOAP.h ../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h \
+	SOAPClientSocketImp.h SOAPSecureSocketImp.h
+SOAPStructHandler.lo SOAPStructHandler.o : SOAPStructHandler.cpp \
+	SOAPStructHandler.h ../include/SOAPParseEventHandler.h \
+	SOAPParameterHandler.h ../include/SOAP.h ../include/es_comp.h \
+	../include/es_conf.h ../include/es_config.h \
+	../include/SOAPUtil.h ../include/SOAPHashMap.h \
+	../include/SOAPArray.h ../include/SOAPException.h \
+	../include/SOAPString.h ../include/SOAPQName.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+SOAPUrl.lo SOAPUrl.o : SOAPUrl.cpp ../include/SOAP.h \
+	../include/es_comp.h ../include/es_conf.h \
+	../include/es_config.h ../include/SOAPUtil.h \
+	../include/SOAPHashMap.h ../include/SOAPArray.h \
+	../include/SOAPException.h ../include/SOAPString.h \
+	../include/SOAPQName.h ../include/SOAPParseEventHandler.h \
+	../include/SOAPProxy.h ../include/SOAPMethod.h \
+	../include/SOAPParameter.h ../include/SOAPBase64.h \
+	../include/SOAPNamespaces.h ../include/SOAPEnvelope.h \
+	../include/SOAPBody.h ../include/SOAPFault.h \
+	../include/SOAPHeader.h ../include/SOAPResponse.h \
+	../include/SOAPPacketWriter.h ../include/SOAPParse.h \
+	../include/XMLParser.h ../include/SOAPTransport.h \
+	../include/SOAPStack.h ../include/SOAPUrl.h
+XMLParser.lo XMLParser.o : XMLParser.cpp ../include/XMLParser.h
+
+info-am:
+info: info-recursive
+dvi-am:
+dvi: dvi-recursive
+check-am: all-am
+check: check-recursive
+installcheck-am:
+installcheck: installcheck-recursive
+install-exec-am: install-libLIBRARIES install-libLTLIBRARIES
+install-exec: install-exec-recursive
+
+install-data-am:
+install-data: install-data-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-recursive
+uninstall-am: uninstall-libLIBRARIES uninstall-libLTLIBRARIES
+uninstall: uninstall-recursive
+all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS)
+all-redirect: all-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs: installdirs-recursive
+installdirs-am:
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(libdir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
+		mostlyclean-libtool mostlyclean-libLTLIBRARIES \
+		mostlyclean-tags mostlyclean-generic
+
+mostlyclean: mostlyclean-recursive
+
+clean-am:  clean-libLIBRARIES clean-compile clean-libtool \
+		clean-libLTLIBRARIES clean-tags clean-generic \
+		mostlyclean-am
+
+clean: clean-recursive
+
+distclean-am:  distclean-libLIBRARIES distclean-compile \
+		distclean-libtool distclean-libLTLIBRARIES \
+		distclean-tags distclean-generic clean-am
+	-rm -f libtool
+
+distclean: distclean-recursive
+
+maintainer-clean-am:  maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-libLTLIBRARIES maintainer-clean-tags \
+		maintainer-clean-generic distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-recursive
+
+.PHONY: mostlyclean-libLIBRARIES distclean-libLIBRARIES \
+clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
+install-libLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile mostlyclean-libtool \
+distclean-libtool clean-libtool maintainer-clean-libtool \
+mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs-am \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
