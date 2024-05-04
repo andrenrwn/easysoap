@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPStructHandler.cpp,v 1.9 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPStructHandler.cpp,v 1.15 2003/06/03 17:30:18 dcrowley Exp $
  */
 
 
@@ -27,11 +27,13 @@
 #include "SOAPStructHandler.h"
 #include "SOAPParameterHandler.h"
 
-#include <SOAPParameter.h>
+#include <easysoap/SOAPParameter.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPStructHandler::SOAPStructHandler()
 {
@@ -44,14 +46,14 @@ SOAPStructHandler::~SOAPStructHandler()
 }
 
 SOAPParseEventHandler *
-SOAPStructHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPStructHandler::start(SOAPParser&, const char *, const char **)
 {
 	m_param->SetIsStruct();
 	return this;
 }
 
 SOAPParseEventHandler *
-SOAPStructHandler::startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPStructHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
 	const char *id = 0;
 	const char *href = 0;
@@ -74,37 +76,14 @@ SOAPStructHandler::startElement(SOAPParser& parser, const XML_Char *name, const 
 		}
 	}
 
-	SOAPParameter *param = 0;
+	SOAPParameter *param = &m_param->AddParameter(name);
 
+	if (href)
+		parser.SetHRefParam(param);
 	if (id)
-	{
-		if (!(param = parser.GetHRefParam(id)))
-		{
-			param = &m_param->AddParameter(name);
-			parser.SetHRefParam(id, param);
-		}
-		else
-		{
-		}
-	}
-	else if (href)
-	{
-		++href;
-		if (!(param = parser.GetHRefParam(href)))
-		{
-			param = &m_param->AddParameter(name);
-			parser.SetHRefParam(href, param);
-		}
-		else
-		{
-		}
-	}
-	else
-	{
-		param = &m_param->AddParameter(name);
-	}
+		parser.SetIdParam(id, param);
 
-	m_paramHandler->SetParameter(*param);
+	m_paramHandler->SetParameter(param);
 	return m_paramHandler->start(parser, name, attrs);
 }
 

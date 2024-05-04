@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPMethodHandler.h,v 1.6 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPMethodHandler.h,v 1.8 2003/06/03 17:30:16 dcrowley Exp $
  */
 
 
@@ -24,6 +24,8 @@
 #define AFX_SOAPMETHODHANDLER_H__986E8F0F_4214_4C89_A3E6_FA2BD4444667__INCLUDED_
 
 #include "SOAPParameterHandler.h"
+
+BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPMethod;
 
@@ -35,13 +37,19 @@ public:
 
 	void SetMethod(SOAPMethod&);
 
-	virtual SOAPParseEventHandler* start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual SOAPParseEventHandler* startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
+	virtual SOAPParseEventHandler* start(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual SOAPParseEventHandler* startElement(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
 
 private:
 	SOAPMethod				*m_method;
 	SOAPParameterHandler	m_paramHandler;
 };
+
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPMETHODHANDLER_H__986E8F0F_4214_4C89_A3E6_FA2BD4444667__INCLUDED_)
 

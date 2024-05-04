@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPEnvelopeHandler.h,v 1.7 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPEnvelopeHandler.h,v 1.11 2003/06/03 17:30:13 dcrowley Exp $
  */
 
 
@@ -26,6 +26,8 @@
 
 #include "SOAPBodyHandler.h"
 #include "SOAPHeaderHandler.h"
+
+BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPEnvelope;
 
@@ -38,11 +40,13 @@ public:
 	virtual ~SOAPEnvelopeHandler();
 
 	void SetEnvelope(SOAPEnvelope& env);
-	bool Done()	{return m_done;}
 
-	virtual SOAPParseEventHandler* start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual SOAPParseEventHandler* startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual void endElement(const XML_Char *name);
+	virtual SOAPParseEventHandler* start(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual SOAPParseEventHandler* startElement(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
 
 
 private:
@@ -52,6 +56,8 @@ private:
 	SOAPHeaderHandler	m_headerHandler;
 
 };
+
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPENVELOPEHANDLER_H__DD7D4800_3A07_4FF2_943F_E7364E9278E7__INCLUDED_)
 

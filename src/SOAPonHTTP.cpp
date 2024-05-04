@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPonHTTP.cpp,v 1.32 2001/09/04 17:15:15 dcrowley Exp $
+ * $Id: SOAPonHTTP.cpp,v 1.64 2006/11/09 20:53:04 dcrowley Exp $
  */
 
 /* Modified 20-aug-2001 Tor Molnes ConsultIT AS
@@ -27,25 +27,48 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPonHTTP.h>
-#include <SOAPEnvelope.h>
-#include <SOAPDebugger.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPonHTTP.h>
+#include <easysoap/SOAPEnvelope.h>
+#include <easysoap/SOAPDebugger.h>
 
 #include "SOAPSecureSocketImp.h"
 
-#ifndef SOAPUSER_AGENT
-#define SOAPUSER_AGENT EASYSOAP_STRING "/" EASYSOAP_VERSION_STRING
-#endif // SOAPUSER_AGENT
+// For MD5 Digest Authentication
+extern "C" {
+#include "digcalc.h"
+}
+
+#if 0
+static void testDigest()
+{
+      const char * pszNonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093";
+      const char * pszCNonce = "0a4f113b";
+      const char * pszUser = "Mufasa";
+      const char * pszRealm = "testrealm@host.com";
+      const char * pszPass = "Circle Of Life";
+      const char * pszAlg = "md5";
+      char szNonceCount[9] = "00000001";
+      const char * pszMethod = "GET";
+      const char * pszQop = "auth";
+      const char * pszURI = "/dir/index.html";
+      HASHHEX HA1;
+      HASHHEX HA2 = "";
+      HASHHEX Response;
+
+      DigestCalcHA1(pszAlg, pszUser, pszRealm, pszPass, pszNonce, pszCNonce, HA1);
+      DigestCalcResponse(HA1, pszNonce, szNonceCount, pszCNonce, pszQop, pszMethod, pszURI, HA2, Response);
+};
+#endif
+
+#define DEFAULT_USERAGENT EASYSOAP_STRING "/" EASYSOAP_VERSION_STRING
+
+USING_EASYSOAP_NAMESPACE
+
 
 // read the payload into the buffer.
 // can be called multiple times.
 // returns 0 if entire payload has been read.
-
-void
-SOAPonHTTP::SetError()
-{
-}
 
 size_t
 SOAPonHTTP::Read(char *buffer, size_t buffsize)
@@ -59,24 +82,62 @@ SOAPonHTTP::Read(char *buffer, size_t buffsize)
 size_t
 SOAPonHTTP::Write(const SOAPMethod& method, const char *payload, size_t payloadsize)
 {
-	m_http.BeginPost(m_path);
-	m_http.WriteHeader("User-Agent", SOAPUSER_AGENT);
-	m_http.WriteHeader("Content-Type", "text/xml; charset=\"UTF-8\"");
+	int retry = 5;
+	int ret = 0;
+	while (retry--)
+	{
+		m_http.BeginPost(m_endpoint.Path());
+		m_http.WriteHeader("User-Agent", m_userAgent.IsEmpty() ?
+				DEFAULT_USERAGENT : (const char *)m_userAgent);
 
-	m_http.Write("SOAPAction: \"");
-	m_http.Write(method.GetSoapAction());
-	m_http.WriteLine("\"");
+		m_http.WriteHeader("Content-Type", "text/xml; charset=UTF-8");
+#ifdef HAVE_LIBZ
+		m_http.WriteHeader("Accept-Encoding", "gzip, deflate");
+#endif // HAVE_LIBZ
 
-	int ret = m_http.PostData(payload, payloadsize);
+		m_http.Write("SOAPAction:");
+		if (method.GetSoapAction())
+		{
+			m_http.Write("\"");
+			m_http.Write(method.GetSoapAction());
+			m_http.Write("\"");
+		}
+		m_http.WriteLine();
+
+		ret = m_http.PostData(payload, payloadsize);
+
+		//
+		// If resource moved (temporarily or permanently)
+		if (ret == 301 || ret == 302)
+		{
+			const char *location = m_http.GetHeader("Location");
+			if (!location)
+				throw SOAPException("HTTP code %d did not return a Location header.", ret);
+
+			SOAPUrl newendpoint = location;
+
+			// If only the path changed, we don't
+			// need to re-connect.
+			if (newendpoint.Hostname() != m_endpoint.Hostname() ||
+				newendpoint.Port() != m_endpoint.Port())
+				m_http.ConnectTo(newendpoint);
+
+			m_endpoint = newendpoint;
+		}
+		else
+			break;
+	}
+
+	// Only valid return codes  we know of.  200 is success,
+	// 500 could be a soap fault.
+	if (ret != 200 && ret != 500)
+		throw SOAPException("Unexpected return code: %s",
+			(const char *)m_http.GetRequestMessage());
+
 	bool isxml = true;
-
 	const char *contype = m_http.GetHeader("Content-Type");
 	if (contype)
 		isxml = (sp_strstr(contype, "text/xml") != 0);
-
-	if (ret != 200 && !isxml)
-		throw SOAPException("Unexpected return code: %s",
-			(const char *)m_http.GetRequestMessage());
 
 	if (!isxml)
 		throw SOAPException("Unexpected return Content-Type: %s", contype);
@@ -88,6 +149,56 @@ const char *
 SOAPonHTTP::GetCharset() const
 {
 	return m_http.GetCharset();
+}
+
+const char *
+SOAPonHTTP::GetContentType() const
+{
+	return m_http.GetContentType();
+}
+
+const char *
+SOAPonHTTP::GetContentEncoding() const
+{
+	return m_http.GetContentEncoding();
+}
+
+void
+SOAPonHTTP::ConnectTo(const SOAPUrl& endpoint)
+{
+	m_endpoint = endpoint;
+	if (m_ctx)
+			m_http.SetContext(*m_ctx);
+	if (m_cbdata)
+			m_http.SetVerifyCBData(m_cbdata);
+
+	const char *proxy_str = getenv("http_proxy");
+	if (proxy_str)
+	{
+		SOAPUrl proxy = proxy_str;
+		m_http.ConnectTo(endpoint, proxy);
+	}
+	else
+		m_http.ConnectTo(endpoint);
+}
+
+void
+SOAPonHTTP::ConnectTo(const SOAPUrl& endpoint, const SOAPUrl& proxy)
+{
+	m_endpoint = endpoint;
+
+	if (m_ctx)
+			m_http.SetContext(*m_ctx);
+	if (m_cbdata)
+			m_http.SetVerifyCBData(m_cbdata);
+
+	m_http.ConnectTo(endpoint, proxy);
+}
+
+SOAPHTTPProtocol::~SOAPHTTPProtocol()
+{
+	delete m_sslsocket;
+	m_sslsocket = 0;
 }
 
 void
@@ -110,7 +221,7 @@ void
 SOAPHTTPProtocol::WriteHostHeader(const SOAPUrl& url)
 {
 	if (url.PortIsDefault())
-		WriteHeader("Host", url.Hostname());
+		WriteHeader("Host", (const char *)url.Hostname());
 	else
 	{
 		char buffer[256];
@@ -125,6 +236,9 @@ int
 SOAPHTTPProtocol::Get(const char *path)
 {
 	StartVerb("GET", path);
+	AddAuthorization("Authorization", m_endpoint);
+	AddAuthorization("Proxy-Authorization", m_proxy);
+
 	WriteLine("");
 	int ret = GetReply();
 	if (ret == 100)
@@ -156,7 +270,7 @@ SOAPHTTPProtocol::StartVerb(const char *verb, const char *path)
 		throw SOAPException("Invalid NULL path");
 
 	FlushInput();
-	SOAPDebugger::Print(1, "\r\n\r\nREQUEST:\r\n");
+	SOAPDebugger::Print(1, "\n\nREQUEST:\n");
 
 	if (!Connect())
 		throw SOAPSocketException("Unable to make socket connection");
@@ -181,10 +295,28 @@ SOAPHTTPProtocol::StartVerb(const char *verb, const char *path)
 }
 
 void
+SOAPHTTPProtocol::AddAuthorization(const char *type, const SOAPUrl& endpoint)
+{
+	if (!endpoint.User().IsEmpty() || !endpoint.Password().IsEmpty())
+	{
+		SOAPString up = endpoint.User();
+		up.Append(":");
+		up.Append(endpoint.Password());
+		SOAPString enc;
+		SOAPBase64Base::Encode(up, up.Length(), enc);
+
+		up = "Basic ";
+		up.Append(enc);
+		WriteHeader(type, (const char *)up);
+	}
+}
+
+void
 SOAPHTTPProtocol::BeginPost(const char *path)
 {
-
 	StartVerb("POST", path);
+	AddAuthorization("Authorization", m_endpoint);
+	AddAuthorization("Proxy-Authorization", m_proxy);
 }
 
 int
@@ -193,9 +325,12 @@ SOAPHTTPProtocol::PostData(const char *bytes, int len)
 	WriteHeader("Content-Length", len);
 	WriteLine("");
 	Write(bytes, len);
+
 	int ret = GetReply();
+
 	if (ret == 100)
 		ret = GetReply();
+
 	return ret;
 }
 
@@ -219,7 +354,7 @@ int
 SOAPHTTPProtocol::GetReply()
 {
 	Flush();
-	SOAPDebugger::Print(1, "\r\n\r\nRESPONSE:\r\n");
+	SOAPDebugger::Print(1, "\n\nRESPONSE:\n");
 	char buff[2048];
 	m_headers.Clear();
 
@@ -237,7 +372,7 @@ SOAPHTTPProtocol::GetReply()
 	if (vers)
 	{
 		respver += atoi(++vers) * 10;
-		if ((vers = sp_strchr(vers, '.')))
+		if ((vers = sp_strchr(vers, '.')) != 0)
 			respver += atoi(++vers);
 	}
 
@@ -252,7 +387,7 @@ SOAPHTTPProtocol::GetReply()
 	else
 		m_httpmsg = buff;
 
-	while (1)
+	for (;;)
 	{
 		if (ReadLine(buff, sizeof(buff)) == 0)
 			break;
@@ -274,7 +409,7 @@ SOAPHTTPProtocol::GetReply()
 	}
 
 	//
-	// Save charset info
+	// Get charset/content-type info
 	//
 	// Per some RFC, encoding is us-ascii if it's not
 	// specifief in HTTP header.
@@ -282,7 +417,7 @@ SOAPHTTPProtocol::GetReply()
 	const char *contype = GetHeader("Content-Type");
 	if (contype)
 	{
-		const char *charset = charset = sp_strstr(contype, "charset=");
+		const char *charset = sp_strstr(contype, "charset=");
 		if (charset)
 		{
 			charset += 8;
@@ -327,8 +462,8 @@ SOAPHTTPProtocol::GetReply()
 	{
 		m_chunked = true;
 		m_canread = 0;
+		SOAPDebugger::Print(2, "\nTransfer is Chunked!\n");
 	}
-	SOAPDebugger::Print(1, "\r\nTransfer is %sChunked!\r\n", (m_chunked?"":"not "));
 
 	return httpreturn;
 }
@@ -344,6 +479,12 @@ SOAPHTTPProtocol::GetHeader(const char *header) const
 	return 0;
 }
 
+const char *
+SOAPHTTPProtocol::GetContentEncoding() const
+{
+	return GetHeader("Content-Encoding");
+}
+
 int
 SOAPHTTPProtocol::GetContentLength() const
 {
@@ -354,23 +495,19 @@ SOAPHTTPProtocol::GetContentLength() const
 	return len;
 }
 
-int
+size_t
 SOAPHTTPProtocol::GetChunkLength()
 {
-	int  nbytes = 0;    // bytes read from socket
-	char hexStg[5];		// hex buffer
+	char hexStg[10];	// hex buffer
 	int  n = 0;         // position in string
 	int  m = 0;         // hex value of character (0-15)
-	int  intValue = 0;  // integer value of hex string
+	size_t intValue = 0;  // integer value of hex string
 
 	// skip blank lines
-	while ((nbytes = super::ReadLine(hexStg, sizeof(hexStg))) == 0)
+	while ((ReadLine(hexStg, sizeof(hexStg))) == 0)
 		;
 
-	if (nbytes < 4)
-		return -1;
-
-	while (n < 4)
+	while (n < 8)
 	{
 		if (hexStg[n]=='\0')
 			break;
@@ -386,17 +523,19 @@ SOAPHTTPProtocol::GetChunkLength()
 		intValue = intValue * 16 + m;
 	}
 
-	SOAPDebugger::Print(1, "\r\nGetChunkLength: %s = %d\r\n", hexStg, intValue);
+	SOAPDebugger::Print(1, "\nGetChunkLength: %s = %d\n", hexStg, intValue);
+
 	return intValue;
 }
 
 void
 SOAPHTTPProtocol::Close()
 {
-	m_canread = -1;
+	SOAPDebugger::Print(5, "SOAPHTTPProtocol::Close()");
+	m_canread = 0;
 	m_doclose = false;
 	super::Close();
-	SOAPDebugger::Print(2, "CLOSED\r\n");
+	SOAPDebugger::Print(2, "CLOSED\n");
 }
 
 bool
@@ -407,29 +546,27 @@ SOAPHTTPProtocol::CanRead()
 }
 
 size_t
-SOAPHTTPProtocol::ReadChunk(char *buffer, int len)
+SOAPHTTPProtocol::ReadChunk(char *buffer, size_t len)
 {
-	size_t ret = 0;
-	if (m_canread == 0)
+	// get chunk size, abort on empty chunk
+	if (m_canread == 0 && (m_canread = GetChunkLength()) == 0)
 	{
-		// get chunk size, abort on empty chunk
-		if ((m_canread = GetChunkLength()) == 0)
-		{
-			if (m_doclose)
-				Close();
-			return 0;
-		}
+		m_chunked = false;
+		if (m_doclose)
+			Close();
+		return 0;
 	}
+
 	if (len > m_canread)
 		len = m_canread;
 
-	ret = super::Read(buffer, len);
+	size_t ret = super::Read(buffer, len);
 	m_canread -= ret;
 	return ret;
 }
 
 size_t
-SOAPHTTPProtocol::ReadBytes(char *buffer, int len)
+SOAPHTTPProtocol::ReadBytes(char *buffer, size_t len)
 {
 	size_t ret = 0;
 	if (m_canread != 0)
@@ -448,7 +585,7 @@ SOAPHTTPProtocol::ReadBytes(char *buffer, int len)
 }
 
 size_t
-SOAPHTTPProtocol::Read(char *buffer, int len)
+SOAPHTTPProtocol::Read(char *buffer, size_t len)
 {
 	if (m_chunked)
 		return ReadChunk(buffer, len);
@@ -459,6 +596,7 @@ SOAPHTTPProtocol::Read(char *buffer, int len)
 bool
 SOAPHTTPProtocol::Connect()
 {
+	SOAPDebugger::Print(5, "SOAPHTTPProtocol::Connect()\r\n");
 	if (!IsOpen())
 	{
 		// See if we have to talk through an HTTP proxy
@@ -471,13 +609,24 @@ SOAPHTTPProtocol::Connect()
 		switch (proto)
 		{
 		case SOAPUrl::http_proto:
-			SOAPProtocolBase::Connect(host, port, false);
+			SOAPProtocolBase::Connect(host, port);
 			break;
 		case SOAPUrl::https_proto:
 			{
-				SOAPSecureSocketImp *socket = new SOAPSecureSocketImp();
-				socket->SOAPClientSocketImp::Connect(host, port);
-				SOAPProtocolBase::SetSocket(socket);
+				delete m_sslsocket;
+				m_sslsocket = 0;
+
+				if (m_ctx)
+					m_sslsocket = new SOAPSecureSocketImp(*m_ctx, m_cbdata);
+				else
+					m_sslsocket = new SOAPSecureSocketImp();
+
+				if (!m_sslsocket)
+					throw SOAPMemoryException();
+				SOAPProtocolBase::SetSocket(m_sslsocket);
+
+				m_sslsocket->Connect(host, port);
+
 				if (m_httpproxy)
 				{
 					char buffer[1024];
@@ -498,15 +647,56 @@ SOAPHTTPProtocol::Connect()
 					// fancy with the GET/POST commands.
 					m_httpproxy = false;
 				}
-				socket->InitSSL();
 			}
 			break;
 		default:
 			throw SOAPSocketException("Can only handle HTTP protocols");
-			break;
 		}
 		return IsOpen();
 	}
 
 	return true;
 }
+
+void
+SOAPHTTPProtocol::ParseContentType(SOAPString& contentType, SOAPString& charset, const char *ctype)
+{
+	//
+	// Per some RFC, encoding is us-ascii if it's not
+	// specified in HTTP header.
+	//
+	charset = "US-ASCII";
+	contentType = "text/xml";
+
+	if (ctype)
+	{
+		const char *ct = ctype;
+		while (*ct)
+		{
+			int c = *ct++;
+			if (c == ' ' || c == ';' || c == 0)
+			{
+				contentType = "";
+				contentType.Append(ctype, ct - ctype - 1);
+				break;
+			}
+		}
+
+
+		const char *cs = sp_strstr(ctype, "charset=");
+		if (cs)
+		{
+			cs += 8;
+			if (*cs == '\"')
+				++cs;
+			const char *end = cs;
+
+			while (*end && *end != '\"' && *end != ';' && *end != ' ')
+				++end;
+
+			charset = "";
+			charset.Append(cs, end - cs);
+		}
+	}
+}
+

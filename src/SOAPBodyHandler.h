@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBodyHandler.h,v 1.6 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPBodyHandler.h,v 1.9 2003/06/03 17:30:12 dcrowley Exp $
  */
 
 
@@ -24,8 +24,9 @@
 #define AFX_SOAPBODYHANDLER_H__F011566F_10D2_4391_B8C2_C19BA6AFA822__INCLUDED_
 
 #include "SOAPMethodHandler.h"
-#include "SOAPFaultHandler.h"
 #include "SOAPParameterHandler.h"
+
+BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPBody;
 
@@ -37,17 +38,22 @@ public:
 
 	void SetBody(SOAPBody&);
 
-	virtual SOAPParseEventHandler* start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual SOAPParseEventHandler* startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
+	virtual SOAPParseEventHandler* start(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual SOAPParseEventHandler* startElement(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
 
 private:
 
 	SOAPBody				*m_body;
 	bool					m_gotMethod;
 	SOAPMethodHandler		m_methodHandler;
-	SOAPFaultHandler		m_faultHandler;
 	SOAPParameterHandler	m_paramHandler;
 };
+
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPBODYHANDLER_H__F011566F_10D2_4391_B8C2_C19BA6AFA822__INCLUDED_)
 

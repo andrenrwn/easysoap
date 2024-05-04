@@ -22,6 +22,8 @@
 //  the interopclient and interopserver programs.
 //
 
+USING_EASYSOAP_NAMESPACE
+
 struct SOAPStruct
 {
 	SOAPString	varString;
@@ -88,6 +90,9 @@ struct SOAPArrayStruct
 	}
 };
 
+BEGIN_EASYSOAP_NAMESPACE
+
+template<>
 class SOAPTypeTraits<SOAPStruct>
 {
 public:
@@ -115,10 +120,12 @@ public:
 	}
 };
 
+template<>
 class SOAPTypeTraits< SOAPArray<SOAPStruct> > : public SOAPArrayTypeTraits
 {
 };
 
+template<>
 class SOAPTypeTraits<SOAPStructStruct>
 {
 public:
@@ -149,6 +156,7 @@ public:
 };
 
 
+template<>
 class SOAPTypeTraits<SOAPArrayStruct>
 {
 public:
@@ -177,6 +185,8 @@ public:
 		return param;
 	}
 };
+
+END_EASYSOAP_NAMESPACE
 
 
 

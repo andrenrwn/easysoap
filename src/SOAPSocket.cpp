@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSocket.cpp,v 1.15 2001/08/25 22:17:41 dcrowley Exp $
+ * $Id: SOAPSocket.cpp,v 1.21 2002/09/17 19:24:48 kingmob Exp $
  */
 
 
@@ -24,10 +24,12 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAPSocket.h>
-
+#include <easysoap/SOAPSocket.h>
+#include <easysoap/SOAPDebugger.h>
 #include "SOAPClientSocketImp.h"
 #include "SOAPSecureSocketImp.h"
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPProtocolBase::SOAPProtocolBase()
 	: m_socket(0)
@@ -36,6 +38,7 @@ SOAPProtocolBase::SOAPProtocolBase()
 	, m_wpos(0)
 	, m_wend(0)
 	, m_timeout(0)
+	, m_delsocket(true)
 {
 }
 
@@ -47,8 +50,11 @@ SOAPProtocolBase::~SOAPProtocolBase()
 void
 SOAPProtocolBase::Close()
 {
-	delete m_socket;
-	m_socket = 0;
+	SOAPDebugger::Print(5, "SOAPProtocolBase::Close()\r\n");
+	if (m_delsocket) {
+		delete m_socket;
+		m_socket = 0;
+	}
 	m_buff = 0;
 	m_buffend = 0;
 	m_wpos = 0;
@@ -60,19 +66,18 @@ SOAPProtocolBase::SetSocket(SOAPSocketInterface *socket)
 {
 	Close();
 	m_socket = socket;
+	m_delsocket = false;
 	m_wpos = m_wbuff;
 	m_wend = m_wpos + sizeof(m_wbuff);
 }
 
 bool
-SOAPProtocolBase::Connect(const char *host, unsigned int port, bool secure)
+SOAPProtocolBase::Connect(const char *host, unsigned int port)
 {
+	SOAPDebugger::Print(5, "SOAPProtocolBase::Connect\r\n");
 	Close();
 
-	if (secure)
-		m_socket = new SOAPSecureSocketImp();
-	else
-		m_socket = new SOAPClientSocketImp();
+	m_socket = new SOAPClientSocketImp();
 
 	if (!m_socket)
 		throw SOAPMemoryException();
@@ -136,6 +141,10 @@ SOAPProtocolBase::ReadLine(char *buff, size_t bufflen)
 	if (!m_socket)
 		throw SOAPSocketException("Protocol doesn't have a socket.");
 
+	if (bufflen == 0)
+		return 0;
+
+	buff[--bufflen] = 0;
 	char *end = buff + bufflen;
 	size_t numread = 0;
 	char c;

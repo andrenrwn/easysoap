@@ -16,15 +16,17 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParameterHandler.h,v 1.9 2001/09/06 18:07:03 dcrowley Exp $
+ * $Id: SOAPParameterHandler.h,v 1.14 2003/06/03 17:30:18 dcrowley Exp $
  */
 
 
 #if !defined(AFX_SOAPPARAMETERHANDLER_H__124ED3B5_721D_4AB5_8B65_32D5C4F86420__INCLUDED_)
 #define AFX_SOAPPARAMETERHANDLER_H__124ED3B5_721D_4AB5_8B65_32D5C4F86420__INCLUDED_
 
-#include <SOAP.h>
-#include <SOAPParseEventHandler.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPParseEventHandler.h>
+
+BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPStructHandler;
 class SOAPParameter;
@@ -36,21 +38,29 @@ public:
 	SOAPParameterHandler();
 	virtual ~SOAPParameterHandler();
 
-	void SetParameter(SOAPParameter& param)			{m_param = &param;}
+	void SetParameter(SOAPParameter *param)		
+	{
+		m_param = param;
+	}
 
-	virtual SOAPParseEventHandler* start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual SOAPParseEventHandler* startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual void endElement(const XML_Char *name);
-	virtual void characterData(const XML_Char *str, int len);
+	virtual SOAPParseEventHandler* start(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual SOAPParseEventHandler* startElement(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual void endElement(const char *name);
+	virtual void characterData(const char *str, int len);
 
 private:
-	SOAPParameter			*m_param;
-
-	SOAPString				m_str;
-	SOAPStructHandler		*m_structHandler;
-	SOAPQName				m_attrName;
-	bool					m_setvalue;
+	SOAPParameter		*m_param;
+	SOAPArray<char>		m_str;
+	SOAPStructHandler	*m_structHandler;
+	SOAPQName			m_attrName;
+	bool				m_setvalue;
 };
+
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPPARAMETERHANDLER_H__124ED3B5_721D_4AB5_8B65_32D5C4F86420__INCLUDED_)
 

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBodyHandler.cpp,v 1.13 2001/09/06 18:07:29 dcrowley Exp $
+ * $Id: SOAPBodyHandler.cpp,v 1.23 2003/06/03 17:30:11 dcrowley Exp $
  */
 
 
@@ -25,9 +25,12 @@
 #endif // _MSC_VER
 
 #include "SOAPBodyHandler.h"
-#include <SOAPBody.h>
-#include <SOAPNamespaces.h>
+#include "es_namespaces.h"
 
+#include <easysoap/SOAPBody.h>
+#include <easysoap/SOAPNamespaces.h>
+
+USING_EASYSOAP_NAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -49,24 +52,23 @@ SOAPBodyHandler::SetBody(SOAPBody& body)
 {
 	m_body = &body;
 	m_methodHandler.SetMethod(body.GetMethod());
-	m_faultHandler.SetFault(body.GetFault());
 }
 
 SOAPParseEventHandler *
-SOAPBodyHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPBodyHandler::start(SOAPParser&, const char *, const char **)
 {
 	m_gotMethod = false;
 	return this;
 }
 
 SOAPParseEventHandler *
-SOAPBodyHandler::startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPBodyHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
 	const char *id = 0;
 	const char *href = 0;
 	bool notRoot = false;
 
-	const XML_Char **cattrs = attrs;
+	const char **cattrs = attrs;
 	while (*cattrs)
 	{
 		const char *tag = *cattrs++;
@@ -87,35 +89,26 @@ SOAPBodyHandler::startElement(SOAPParser& parser, const XML_Char *name, const XM
 
 	if (m_gotMethod || notRoot)
 	{
-		SOAPParameter *p = 0;
-		if (id)
-		{
-			p = parser.GetHRefParam(id);
-			if (!p)
-				throw SOAPException("Body handler: unknown element, id=%s", id);
-		}
-		else if (href)
-		{
-			p = parser.GetHRefParam(++href);
-			if (!p)
-				throw SOAPException("Body handler: unknown element, href=%s", href);
-		}
-		else if (notRoot)
-		{
-			p = &m_body->GetMethod().AddParameter(name);
-		}
+		SOAPParameter *p = &m_body->AddParameter();
 
-		m_paramHandler.SetParameter(*p);
+		if (href)
+			parser.SetHRefParam(p);
+		if (id)
+			parser.SetIdParam(id, p);
+
+		m_paramHandler.SetParameter(p);
+		return m_paramHandler.start(parser, name, attrs);
+	}
+
+	if (sp_strcmp(name, SOAP_ENV PARSER_NS_SEP "Fault") == 0)
+	{
+		SOAPParameter *p = &m_body->GetFault();
+		m_paramHandler.SetParameter(p);
+		m_body->SetIsFault(true);
 		return m_paramHandler.start(parser, name, attrs);
 	}
 
 	m_gotMethod = true;
-	if (sp_strcmp(name, SOAP_ENV PARSER_NS_SEP "Fault") == 0)
-	{
-		m_body->SetIsFault(true);
-		return m_faultHandler.start(parser, name, attrs);
-	}
-
 	m_body->SetIsFault(false);
 	return m_methodHandler.start(parser, name, attrs);
 }

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPHeader.cpp,v 1.10 2001/09/06 17:54:08 dcrowley Exp $
+ * $Id: SOAPHeader.cpp,v 1.14 2001/12/20 22:38:19 dcrowley Exp $
  */
 
 
@@ -24,12 +24,16 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPHeader.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPHeader.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
+
+const char *SOAPHeader::actorNext = "http://schemas.xmlsoap.org/soap/actor/next";
 
 SOAPHeader::SOAPHeader()
 : m_outtasync(false)
@@ -109,7 +113,7 @@ SOAPHeader::Sync() const
 }
 
 bool
-SOAPHeader::WriteSOAPPacket(SOAPPacketWriter& packet) const
+SOAPHeader::WriteSOAPPacket(XMLComposer& packet) const
 {
 	if (m_headers.Size() > 0)
 	{

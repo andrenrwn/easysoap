@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPMethod.cpp,v 1.12 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPMethod.cpp,v 1.16 2002/04/18 05:28:06 dcrowley Exp $
  */
 
 
@@ -24,49 +24,39 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPMethod.h>
-#include <SOAPPacketWriter.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPMethod.h>
+#include <easysoap/XMLComposer.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SOAPMethod::SOAPMethod(const char *name, const char *ns, const char *sa, bool appendName)
+USING_EASYSOAP_NAMESPACE
+
+SOAPMethod::SOAPMethod(const char *name, const char *ns)
 {
 	SetName(name, ns);
-	if (sa)
-	{
-		SetSoapAction(sa, appendName);
-	}
-	else
-	{
-		m_action = ns;
-		m_action.Append("#");
-		m_action.Append(name);
-	}
+}
+
+SOAPMethod::SOAPMethod(const char *name, const char *ns, const char *sa)
+{
+	SetName(name, ns);
+	SetSoapAction(sa);
 }
 
 SOAPMethod::~SOAPMethod()
 {
-
 }
 
 void
-SOAPMethod::SetSoapAction(const char *sa, bool appendName)
+SOAPMethod::SetSoapAction(const char *sa)
 {
-	if (sa)
-	{
-		m_action = sa;
-		if (appendName)
-			m_action.Append(GetName().GetName());
-	}
-	else
-		m_action = "";
+	m_action = sa;
 }
 
 bool
-SOAPMethod::WriteSOAPPacket(SOAPPacketWriter& packet) const
+SOAPMethod::WriteSOAPPacket(XMLComposer& packet) const
 {
 	packet.StartTag(GetName(), "m");
 

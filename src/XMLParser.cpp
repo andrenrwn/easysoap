@@ -16,19 +16,24 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: XMLParser.cpp,v 1.4 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: XMLParser.cpp,v 1.13 2006/11/09 07:24:45 dcrowley Exp $
  */
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
+#include <easysoap/XMLParser.h>
 #include <expat.h>
-#include <XMLParser.h>
+
+#define EXPAT_VER(a,b,c) (((((a)*1000)+(b))*1000)+(c))
+#define EXPAT_VERSION EXPAT_VER(XML_MAJOR_VERSION,XML_MINOR_VERSION,XML_MICRO_VERSION)
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 XMLParser::XMLParser()
 {
@@ -54,8 +59,17 @@ XMLParser::FreeParser()
 void
 XMLParser::InitParser(const char *encoding)
 {
-	FreeParser();
-	m_parser = XML_ParserCreateNS(encoding, '#');
+#if EXPAT_VERSION >= EXPAT_VER(1,95,3)
+	if (m_parser)
+	{
+		XML_ParserReset(m_parser, encoding);
+	}
+	else
+#endif
+	{
+		FreeParser();
+		m_parser = (struct XML_ParserStruct*)XML_ParserCreateNS(encoding, '#');
+	}
 	XML_SetElementHandler(m_parser,
 			XMLParser::_startElement,
 			XMLParser::_endElement);
@@ -97,27 +111,27 @@ XMLParser::GetErrorMessage()
 }
 
 void
-XMLParser::startElement(const XML_Char *name, const XML_Char **attrs)
+XMLParser::startElement(const char *, const char **)
 {
 }
 
 void
-XMLParser::endElement(const XML_Char *name)
+XMLParser::endElement(const char *)
 {
 }
 
 void
-XMLParser::characterData(const XML_Char *str, int len)
+XMLParser::characterData(const char *, int)
 {
 }
 
 void
-XMLParser::startNamespace(const XML_Char *prefix, const XML_Char *uri)
+XMLParser::startNamespace(const char *, const char *)
 {
 }
 
 void
-XMLParser::endNamespace(const XML_Char *prefix)
+XMLParser::endNamespace(const char *)
 {
 }
 

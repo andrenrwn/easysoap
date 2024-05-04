@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPMethodHandler.cpp,v 1.15 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPMethodHandler.cpp,v 1.21 2003/06/03 17:30:16 dcrowley Exp $
  */
 
 
@@ -25,12 +25,14 @@
 #endif // _MSC_VER
 
 #include "SOAPMethodHandler.h"
-#include <SOAPMethod.h>
-#include <SOAPNamespaces.h>
+#include <easysoap/SOAPMethod.h>
+#include <easysoap/SOAPNamespaces.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPMethodHandler::SOAPMethodHandler()
 : m_method(0)
@@ -50,7 +52,7 @@ SOAPMethodHandler::SetMethod(SOAPMethod& method)
 }
 
 SOAPParseEventHandler *
-SOAPMethodHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPMethodHandler::start(SOAPParser&, const char *name, const char **)
 {
 	m_method->Reset();
 
@@ -70,7 +72,7 @@ SOAPMethodHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Cha
 }
 
 SOAPParseEventHandler *
-SOAPMethodHandler::startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPMethodHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
 	const char *id = 0;
 	const char *href = 0;
@@ -93,37 +95,14 @@ SOAPMethodHandler::startElement(SOAPParser& parser, const XML_Char *name, const 
 		}
 	}
 
-	SOAPParameter *param = 0;
+	SOAPParameter *param = &m_method->AddParameter(name);
 
+	if (href)
+		parser.SetHRefParam(param);
 	if (id)
-	{
-		if (!(param = parser.GetHRefParam(id)))
-		{
-			param = &m_method->AddParameter();
-			parser.SetHRefParam(id, param);
-		}
-		else
-		{
-		}
-	}
-	else if (href)
-	{
-		++href;
-		if (!(param = parser.GetHRefParam(href)))
-		{
-			param = &m_method->AddParameter();
-			parser.SetHRefParam(href, param);
-		}
-		else
-		{
-		}
-	}
-	else
-	{
-		param = &m_method->AddParameter();
-	}
+		parser.SetIdParam(id, param);
 
-	m_paramHandler.SetParameter(*param);
+	m_paramHandler.SetParameter(param);
 	return m_paramHandler.start(parser, name, attrs);
 }
 

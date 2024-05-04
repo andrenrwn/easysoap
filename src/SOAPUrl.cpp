@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPUrl.cpp,v 1.6 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPUrl.cpp,v 1.9 2001/12/13 01:59:13 dcrowley Exp $
  */
 
 
@@ -24,12 +24,14 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPUrl.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPUrl.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 static const unsigned int ftp_default_port = 21;
 static const unsigned int http_default_port = 80;
@@ -60,7 +62,7 @@ SOAPUrl::Set(const char *url)
 	const char * const keepurl = url;
 
 	Reset();
-	if (url)
+	if (url && *url)
 	{
 		char buffer[1024];
 		char *work;

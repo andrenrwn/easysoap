@@ -9,8 +9,10 @@ simpleclient_SOURCES = \
 	calchandler.h
 
 LDADD = ../src/libeasysoap.la
-LDFLAGS = -no-install
 INCLUDES = -I@top_srcdir@/include
 
-EXTRA_DIST = README.TXT simpleclient.dsp simpleserver.dsp \
+AM_CFLAGS=-Wall -pedantic
+AM_CXXFLAGS=-Wall -pedantic
+
+EXTRA_DIST = README.TXT \
 	simpleisapi.cpp

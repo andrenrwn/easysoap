@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPEnvelopeHandler.cpp,v 1.15 2001/09/07 18:21:10 dcrowley Exp $
+ * $Id: SOAPEnvelopeHandler.cpp,v 1.23 2003/06/03 17:30:12 dcrowley Exp $
  */
 
 #ifdef _MSC_VER
@@ -24,17 +24,20 @@
 #endif // _MSC_VER
 
 #include "SOAPEnvelopeHandler.h"
-#include <SOAPEnvelope.h>
-#include <SOAPNamespaces.h>
+#include "es_namespaces.h"
+
+#include <easysoap/SOAPEnvelope.h>
+#include <easysoap/SOAPNamespaces.h>
 
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+USING_EASYSOAP_NAMESPACE
+
 SOAPEnvelopeHandler::SOAPEnvelopeHandler()
-: m_done(false)
-, m_envelope(0)
+: m_envelope(0)
 {
 
 }
@@ -49,23 +52,20 @@ void
 SOAPEnvelopeHandler::SetEnvelope(SOAPEnvelope& env)
 {
 	m_envelope = &env;
-	m_done = false;
 	m_bodyHandler.SetBody(m_envelope->GetBody());
 	m_headerHandler.SetHeader(m_envelope->GetHeader());
 }
 
 
 SOAPParseEventHandler *
-SOAPEnvelopeHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPEnvelopeHandler::start(SOAPParser&, const char *, const char **)
 {
-	m_done = false;
 	return this;
 }
 
 SOAPParseEventHandler *
-SOAPEnvelopeHandler::startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPEnvelopeHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
-	m_done = false;
 	if (sp_strcmp(name, SOAP_ENV PARSER_NS_SEP "Body") == 0)
 	{
 		return m_bodyHandler.start(parser, name, attrs);
@@ -84,11 +84,5 @@ SOAPEnvelopeHandler::startElement(SOAPParser& parser, const XML_Char *name, cons
 	throw SOAPException("Unknown tag in SOAP Envelope: %s", name);
 }
 
-void
-SOAPEnvelopeHandler::endElement(const XML_Char *name)
-{
-	if (sp_strcmp(name, SOAP_ENV PARSER_NS_SEP "Envelope") == 0)
-		m_done = true;
-}
 
 

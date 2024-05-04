@@ -16,19 +16,21 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPResponse.cpp,v 1.6 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPResponse.cpp,v 1.8 2001/11/21 06:00:47 dcrowley Exp $
  */
 
 #ifdef MSC_VER
 #pragma warning (disable: 4786)
 #endif // MSC_VER
 
-#include <SOAP.h>
-#include <SOAPResponse.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPResponse.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPResponse::SOAPResponse()
 {

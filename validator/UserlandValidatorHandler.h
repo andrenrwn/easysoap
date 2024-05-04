@@ -20,8 +20,10 @@
 #if !defined(AFX_USERLANDVALIDATORHANDLER_H__D2938615_0A93_4675_9446_13E981BEF182__INCLUDED_)
 #define AFX_USERLANDVALIDATORHANDLER_H__D2938615_0A93_4675_9446_13E981BEF182__INCLUDED_
 
-#include "SOAP.h"
-#include "SOAPDispatchHandler.h"
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPDispatchHandler.h>
+
+USING_EASYSOAP_NAMESPACE
 
 class UserlandValidatorHandler :
 	public SOAPDispatchHandler<UserlandValidatorHandler>
@@ -38,7 +40,7 @@ public:
 		DispatchMethod("simpleStructReturnTest",&UserlandValidatorHandler::simpleStructReturnTest);
 	}
 
-	UserlandValidatorHandler* GetTarget(const SOAPEnvelope& request)
+	UserlandValidatorHandler* GetTarget(const SOAPEnvelope&)
 	{
 		return this;
 	}

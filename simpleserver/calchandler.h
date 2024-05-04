@@ -17,6 +17,8 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+USING_EASYSOAP_NAMESPACE
+
 class DemoCalculatorHandler : public SOAPDispatchHandler<DemoCalculatorHandler>
 {
 public:
@@ -27,7 +29,7 @@ public:
 		DispatchMethod("mult", ns, &DemoCalculatorHandler::mult);
 	}
 
-	DemoCalculatorHandler* GetTarget(const SOAPEnvelope& request)
+	DemoCalculatorHandler* GetTarget(const SOAPEnvelope&)
 	{
 		return this;
 	}

@@ -24,8 +24,8 @@
 //
 //
 
-#include <SOAP.h>
-#include <SOAPCGIServer.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPCGIServer.h>
 
 #include "UserlandValidatorHandler.h"
 #include "WhichToolkitHandler.h"
@@ -35,7 +35,7 @@
 // main for the CGI handler;
 //
 int
-main(int argc, char* argv[], char *env[])
+main()
 {
 	SOAPCGIServer server;
 	WhichToolkitHandler whichToolkitHandler;

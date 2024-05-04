@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParameterHandler.cpp,v 1.22 2001/09/06 18:07:03 dcrowley Exp $
+ * $Id: SOAPParameterHandler.cpp,v 1.30 2004/06/02 06:33:05 dcrowley Exp $
  */
 
 #ifdef _MSC_VER
@@ -26,12 +26,14 @@
 #include "SOAPParameterHandler.h"
 #include "SOAPStructHandler.h"
 
-#include <SOAPNamespaces.h>
-#include <SOAPParameter.h>
+#include <easysoap/SOAPNamespaces.h>
+#include <easysoap/SOAPParameter.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPParameterHandler::SOAPParameterHandler()
 : m_param(0)
@@ -46,9 +48,10 @@ SOAPParameterHandler::~SOAPParameterHandler()
 }
 
 SOAPParseEventHandler *
-SOAPParameterHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPParameterHandler::start(SOAPParser& parser, const char *name, const char **attrs)
 {
 	m_param->Reset();
+	m_param->SetNull(false);
 
 	const char *ns = sp_strchr(name, PARSER_NS_SEP[0]);
 	if (ns)
@@ -63,16 +66,13 @@ SOAPParameterHandler::start(SOAPParser& parser, const XML_Char *name, const XML_
 	}
 
 	m_setvalue = true;
-	m_str = "";
+	m_str.Resize(0);
 
-	const XML_Char *elementType = 0;
-	const XML_Char *arrayType = 0;
-
-	const XML_Char **cattrs = attrs;
+	const char **cattrs = attrs;
 	while (*cattrs)
 	{
-		const XML_Char *tag = *cattrs++;
-		const XML_Char *val = *cattrs++;
+		const char *tag = *cattrs++;
+		const char *val = *cattrs++;
 
 		const char *tsep = sp_strchr(tag, PARSER_NS_SEP[0]);
 		if (tsep)
@@ -116,7 +116,7 @@ SOAPParameterHandler::start(SOAPParser& parser, const XML_Char *name, const XML_
 }
 
 SOAPParseEventHandler *
-SOAPParameterHandler::startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPParameterHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
 	//
 	// If a parameter has an element, then it must
@@ -129,18 +129,18 @@ SOAPParameterHandler::startElement(SOAPParser& parser, const XML_Char *name, con
 }
 
 void
-SOAPParameterHandler::characterData(const XML_Char *str, int len)
+SOAPParameterHandler::characterData(const char *str, int len)
 {
 	if (m_setvalue)
-		m_str.Append(str, len);
+		m_str.Add(str, len);
 }
 
 void
-SOAPParameterHandler::endElement(const XML_Char *name)
+SOAPParameterHandler::endElement(const char *)
 {
 	if (m_setvalue)
 	{
-		m_param->SetNull(false);
-		m_param->GetStringRef() = m_str;
+		m_str.Add(char(0)); // null terminate
+		m_param->GetStringRef() = m_str.Ptr();
 	}
 }

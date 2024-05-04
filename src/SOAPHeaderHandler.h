@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPHeaderHandler.h,v 1.7 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPHeaderHandler.h,v 1.9 2003/06/03 17:30:15 dcrowley Exp $
  */
 
 
@@ -24,6 +24,8 @@
 #define AFX_SOAPHEADERHANDLER_H__A673A39C_3468_40A3_A837_690B8A74AAE2__INCLUDED_
 
 #include "SOAPParameterHandler.h"
+
+BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPHeader;
 
@@ -36,13 +38,19 @@ public:
 
 	void SetHeader(SOAPHeader&);
 
-	virtual SOAPParseEventHandler* start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual SOAPParseEventHandler* startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
+	virtual SOAPParseEventHandler* start(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual SOAPParseEventHandler* startElement(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
 
 private:
 	SOAPHeader				*m_header;
 	SOAPParameterHandler	m_paramHandler;
 };
+
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPHEADERHANDLER_H__A673A39C_3468_40A3_A837_690B8A74AAE2__INCLUDED_)
 

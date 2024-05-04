@@ -16,20 +16,22 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPFault.cpp,v 1.12 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPFault.cpp,v 1.20 2004/06/02 06:33:05 dcrowley Exp $
  */
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPFault.h>
-#include <SOAPNamespaces.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPFault.h>
+#include <easysoap/SOAPNamespaces.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 const SOAPString SOAPFault::faultactor_attr = "faultactor";
 const SOAPString SOAPFault::faultcode_attr = "faultcode";
@@ -38,19 +40,12 @@ const SOAPString SOAPFault::faultstring_attr = "faultstring";
 
 SOAPFault::SOAPFault()
 {
-
+	SetName(SOAPEnv::Fault);
 }
 
 SOAPFault::~SOAPFault()
 {
 
-}
-
-bool
-SOAPFault::WriteSOAPPacket(SOAPPacketWriter& packet) const
-{
-	// nothing to do yet...
-	return true;
 }
 
 const SOAPParameter*
@@ -89,16 +84,55 @@ SOAPFault::GetDetail() const
 	return 0;
 }
 
-SOAPFaultException::SOAPFaultException(const SOAPFault& fault)
+bool
+SOAPFault::WriteSOAPPacket(XMLComposer& packet) const
 {
-		const SOAPParameter *p = 0;
+	const SOAPParameter *p = 0;
+
+	packet.StartTag(GetName());
+
+	//
+	// Enforce element order
+	if ((p = GetFaultCode()) != 0)
+		p->WriteSOAPPacket(packet);
+	if ((p = GetFaultString()) != 0)
+		p->WriteSOAPPacket(packet);
+	if ((p = GetFaultActor()) != 0)
+		p->WriteSOAPPacket(packet);
+	if ((p = GetDetail()) != 0)
+		p->WriteSOAPPacket(packet);
+
+	SOAPParameter::Struct::Iterator i = GetStruct().Begin();
+	while (i != GetStruct().End())
+	{
+		p = *i++;
+		//
+		// skip elements which have already been output
+		const SOAPQName& name = p->GetName();
+		if (name == faultcode_attr ||
+			name == faultstring_attr ||
+			name == faultactor_attr ||
+			name == faultdetail_attr)
+			continue;
+		p->WriteSOAPPacket(packet);
+	}
+
+	packet.EndTag(GetName());
+
+	return true;
+}
+
+SOAPFaultException::SOAPFaultException(const SOAPFault& fault)
+: m_fault(fault)
+{
+		const SOAPParameter *p;
 		m_what = "SOAP Fault";
-		if ((p = fault.GetFaultString()))
+		if ((p = fault.GetFaultString()) != 0)
 		{
 			m_what.Append(": ");
 			m_what.Append(p->GetString());
 		}
-		if ((p = fault.GetFaultActor()))
+		if ((p = fault.GetFaultActor()) != 0)
 		{
 			m_what.Append(": ");
 			m_what.Append(p->GetString());

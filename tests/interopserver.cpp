@@ -26,21 +26,23 @@
 //
 //
 
-#include <SOAP.h>
-#include <SOAPCGIServer.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPCGIServer.h>
 
 #include "SOAPBuildersInteropHandler.h"
+#include "SOAPBuildersHeaderHandler.h"
 
 int
-main(int argc, const char* argv[], const char *env[])
+main()
 {
 	SOAPCGIServer server;
 
 	SOAPBuildersInteropHandler interopHandler;
 	SOAPBuildersHeaderHandler headerHandler;
 
-	SOAPPacketWriter::SetAddWhiteSpace();
+	XMLComposer::SetAddWhiteSpace();
 
-	return server.DispatchTo(&headerHandler).DispatchTo(&interopHandler).Handle();
+	server.DispatchTo(&headerHandler).DispatchTo(&interopHandler).Handle();
+	return 0;
 }
 

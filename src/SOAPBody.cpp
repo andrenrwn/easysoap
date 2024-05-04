@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBody.cpp,v 1.9 2001/09/06 16:48:42 dcrowley Exp $
+ * $Id: SOAPBody.cpp,v 1.15 2002/05/31 07:33:11 dcrowley Exp $
  */
 
 
@@ -24,10 +24,12 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPBody.h>
-#include <SOAPPacketWriter.h>
-#include <SOAPNamespaces.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPBody.h>
+#include <easysoap/XMLComposer.h>
+#include <easysoap/SOAPNamespaces.h>
+
+USING_EASYSOAP_NAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -40,7 +42,7 @@ SOAPBody::SOAPBody()
 
 SOAPBody::~SOAPBody()
 {
-
+	Reset();
 }
 
 void
@@ -49,17 +51,34 @@ SOAPBody::Reset()
 	m_method.Reset();
 	m_fault.Reset();
 	m_isfault = false;
+	for (Array::Iterator i = m_params.Begin(); i != m_params.End(); ++i)
+	{
+		(*i)->Reset();
+		m_pool.Return(*i);
+	}
+	m_params.Resize(0);
+}
+
+SOAPParameter&
+SOAPBody::AddParameter()
+{
+	SOAPParameter *ret = m_pool.Get();
+	return *m_params.Add(ret);
 }
 
 bool
-SOAPBody::WriteSOAPPacket(SOAPPacketWriter& packet) const
+SOAPBody::WriteSOAPPacket(XMLComposer& packet) const
 {
 	packet.StartTag(SOAPEnv::Body);
 
 	if (m_isfault)
 		m_fault.WriteSOAPPacket(packet);
 	else
+	{
 		m_method.WriteSOAPPacket(packet);
+		for (size_t i = 0; i < m_params.Size(); ++i)
+			m_params[i]->WriteSOAPPacket(packet);
+	}
 
 	packet.EndTag(SOAPEnv::Body);
 

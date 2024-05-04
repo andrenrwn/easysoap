@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPEnvelope.cpp,v 1.12 2001/08/27 02:57:14 dcrowley Exp $
+ * $Id: SOAPEnvelope.cpp,v 1.16 2001/12/20 22:38:19 dcrowley Exp $
  */
 
 
@@ -24,14 +24,16 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPEnvelope.h>
-#include <SOAPNamespaces.h>
-#include <SOAPPacketWriter.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPEnvelope.h>
+#include <easysoap/SOAPNamespaces.h>
+#include <easysoap/XMLComposer.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPEnvelope::SOAPEnvelope()
 {
@@ -44,18 +46,18 @@ SOAPEnvelope::~SOAPEnvelope()
 }
 
 bool
-SOAPEnvelope::WriteSOAPPacket(SOAPPacketWriter& packet) const
+SOAPEnvelope::WriteSOAPPacket(XMLComposer& packet) const
 {
 	packet.Reset();
 	packet.StartTag(SOAPEnv::Envelope, "E");
 
 	// TODO: automagically add only the tags we need...
-	packet.AddXMLNS("A", SOAP_ENC);
-	packet.AddXMLNS("s", SOAP_XSI);
-	packet.AddXMLNS("y", SOAP_XSD);
+	packet.AddXMLNS("A", SOAPEnc::base);
+	packet.AddXMLNS("s", XMLSchema2001::xsi);
+	packet.AddXMLNS("y", XMLSchema2001::xsd);
 
 	// TODO: allow user to set custom encoding style
-	packet.AddAttr(SOAPEnv::encodingStyle, SOAP_ENC);
+	packet.AddAttr(SOAPEnv::encodingStyle, SOAPEnc::base);
 
 	m_header.WriteSOAPPacket(packet);
 	m_body.WriteSOAPPacket(packet);

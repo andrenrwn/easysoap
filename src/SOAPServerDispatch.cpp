@@ -16,17 +16,18 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPServerDispatch.cpp,v 1.21 2001/09/06 18:08:02 dcrowley Exp $
+ * $Id: SOAPServerDispatch.cpp,v 1.31 2002/04/17 23:53:16 dcrowley Exp $
  */
 
-#include <SOAPServerDispatch.h>
-#include <SOAPDispatchHandler.h>
-
-
+#include <easysoap/SOAPServerDispatch.h>
+#include <easysoap/SOAPDispatchHandler.h>
 
 //
 // Special exception for mustUnderstand faults
 // so we can return the correct faultstring
+
+BEGIN_EASYSOAP_NAMESPACE
+
 class SOAPMustUnderstandException : public SOAPException
 {
 public:
@@ -42,6 +43,9 @@ public:
 	~SOAPMustUnderstandException() {}
 };
 
+END_EASYSOAP_NAMESPACE
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPServerDispatch::SOAPServerDispatch()
 	: m_transport(0)
@@ -77,20 +81,15 @@ SOAPServerDispatch::DispatchTo(SOAPHeaderHandlerInterface *disp)
 // out the correct way....
 //
 void
-SOAPServerDispatch::WriteFault(const char *code, const char *str)
+SOAPServerDispatch::WriteFault(const SOAPFault& fault)
 {
 	m_writer.Reset();
 	m_writer.StartTag("SOAP-ENV:Envelope");
-	m_writer.AddXMLNS("SOAP-ENV", SOAP_ENV);
+	m_writer.AddXMLNS("SOAP-ENV", SOAPEnv::base);
+	m_writer.AddXMLNS("xsi", XMLSchema2001::xsi);
+	m_writer.AddXMLNS("xsd", XMLSchema2001::xsd);
 	m_writer.StartTag("SOAP-ENV:Body");
-	m_writer.StartTag("SOAP-ENV:Fault");
-	m_writer.StartTag("faultcode");
-	m_writer.WriteValue(code);
-	m_writer.EndTag("faultcode");
-	m_writer.StartTag("faultstring");
-	m_writer.WriteValue(str);
-	m_writer.EndTag("faultstring");
-	m_writer.EndTag("SOAP-ENV:Fault");
+	fault.WriteSOAPPacket(m_writer);
 	m_writer.EndTag("SOAP-ENV:Body");
 	m_writer.EndTag("SOAP-ENV:Envelope");
 
@@ -100,10 +99,10 @@ SOAPServerDispatch::WriteFault(const char *code, const char *str)
 
 
 
-int
-SOAPServerDispatch::Handle(SOAPTransport& trans)
+bool
+SOAPServerDispatch::Handle(SOAPServerTransport& trans)
 {
-	int retval = 0;
+	bool retval = false;
 	const char *serverfault = "SOAP-ENV:Server";
 	const char *clientfault = "SOAP-ENV:Client";
 	const char *faultcode = serverfault;
@@ -141,10 +140,14 @@ SOAPServerDispatch::Handle(SOAPTransport& trans)
 		// Now handle the request
 		if (!HandleRequest(m_request, m_response))
 		{
+			const char *methns = requestMethod.GetName().GetNamespace();
+			const char *methname = requestMethod.GetName().GetName();
 			faultcode = clientfault;
-			throw SOAPException("Unknown method \"{%s}:%s\"",
-				(const char *)requestMethod.GetName().GetNamespace(),
-				(const char *)requestMethod.GetName().GetName());
+			if (!methns)
+				methns ="Unspecified";
+			if (!methname)
+				methname ="Unspecified";
+			throw SOAPException("Unknown method \"{%s}:%s\"", methns, methname);
 		}
 
 		//
@@ -157,31 +160,40 @@ SOAPServerDispatch::Handle(SOAPTransport& trans)
 		m_transport->Write(m_response.GetBody().GetMethod(),
 			m_writer.GetBytes(),
 			m_writer.GetLength());
+
+		retval = true;
+	}
+	catch(SOAPFault& fault)
+	{
+		HandleFault(fault);
+		WriteFault(fault);
 	}
 	catch(SOAPMustUnderstandException& mux)
 	{
-		//
-		// create SOAPFault
-		//
-		retval = -1;
-		WriteFault("SOAP-ENV:MustUnderstand", mux.What());
+		SOAPFault fault;
+		fault.SetFaultString(mux.What());
+		fault.SetFaultCode("SOAP-ENV:MustUnderstand");
+
+		HandleFault(fault);
+		WriteFault(fault);
 	}
 	catch(SOAPException& sex)
 	{
-		//
-		// create SOAPFault
-		//
-		retval = -1;
-		WriteFault(faultcode, sex.What());
+		SOAPFault fault;
+		fault.SetFaultString(sex.What());
+		fault.SetFaultCode(faultcode);
+
+		HandleFault(fault);
+		WriteFault(fault);
 	}
 	catch (...)
 	{
-		//
-		// create SOAPFault
-		//
-		faultcode = serverfault;
-		WriteFault(faultcode, "Serious error occurred.");
-		retval = -1;
+		SOAPFault fault;
+		fault.SetFaultString("Serious error occured.");
+		fault.SetFaultCode(serverfault);
+
+		HandleFault(fault);
+		WriteFault(fault);
 	}
 
 	return retval;
@@ -221,32 +233,29 @@ SOAPServerDispatch::HandleHeaders(SOAPEnvelope& request, SOAPResponse& response)
 		{
 			//
 			// TODO: Be able to specify/check for a custom QName for this endpoint
-			if (!actor || (*actor == SOAP_ACTOR_NEXT))
+			if (!actor || (*actor == SOAPHeader::actorNext))
 			{
-				bool handled = false;
 				//
 				// TODO:  This is an O(n) lookup... but n is (hopefully!) small
-				for (HeaderHandlers::Iterator i = m_headerHandlers.Begin(); i != m_headerHandlers.End(); ++i)
+				HeaderHandlers::Iterator i;
+				for (i = m_headerHandlers.Begin();
+					i != m_headerHandlers.End(); ++i)
 				{
 					//
 					// We found a handler.  Now dispatch the method
 					if ((*i)->HandleHeader(header, request, response))
-					{
-						handled = true;
 						break;
-					}
 				}
 
-				if (!handled)
+				//
+				// check for mustUnderstand == 1
+				if (i == m_headerHandlers.End() && mu && *mu == "1")
 				{
-					//
-					// check for mustUnderstand == 1
-					if (mu && *mu == "1")
-						// TODO:  Special MustUnderstand exception so the
-						// actor(?) in the SOAPFault can be set correctly.
-						throw SOAPMustUnderstandException("Failed to understand header \"{%s}:%s\"",
-							(const char *)header.GetName().GetNamespace(),
-							(const char *)header.GetName().GetName());
+					// TODO:  Special MustUnderstand exception so the
+					// actor(?) in the SOAPFault can be set correctly.
+					throw SOAPMustUnderstandException("Failed to understand header \"{%s}:%s\"",
+						(const char *)header.GetName().GetNamespace(),
+						(const char *)header.GetName().GetName());
 				}
 			}
 		}
@@ -256,29 +265,6 @@ SOAPServerDispatch::HandleHeaders(SOAPEnvelope& request, SOAPResponse& response)
 				(const char *)header.GetName().GetNamespace(),
 				(const char *)header.GetName().GetName(),
 				(const char *)mu->GetName());
-		}
-	}
-}
-
-void
-SOAPTransport::ParseContentType(SOAPString& str, const char *contenttype)
-{
-	str = "US-ASCII";
-	if (contenttype)
-	{
-		const char *charset = sp_strstr(contenttype, "charset=");
-		if (charset)
-		{
-			charset += 8;
-			if (*charset == '\"')
-				++charset;
-			const char *end = charset;
-
-			while (*end && *end != '\"' && *end != ';' && *end != ' ')
-				++end;
-
-			str = "";
-			str.Append(charset, end - charset);
 		}
 	}
 }

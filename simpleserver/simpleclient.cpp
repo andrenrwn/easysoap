@@ -17,13 +17,14 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <SOAP.h>
+#include <easysoap/SOAP.h>
+
+USING_EASYSOAP_NAMESPACE
 
 //
 //  The namespace for the methods we're calling.  This
 //  is the same namespace defined in calchandler.h.
 static const char *ns = "http://easysoap.sourceforge.net/demos/calculator";
-
 
 int
 main(int argc, const char *argv[])
@@ -38,7 +39,6 @@ main(int argc, const char *argv[])
 
 		SOAPProxy proxy(endpoint);
 		SOAPMethod addmethod("add", ns);
-		SOAPMethod multmethod("mult", ns);
 
 		int a = 10;
 		int b = 22;
@@ -48,13 +48,20 @@ main(int argc, const char *argv[])
 		addmethod.AddParameter("b") << b;
 
 		const SOAPResponse& addresp = proxy.Execute(addmethod);
+
 		addresp.GetReturnValue() >> n;
+
 		printf("%d + %d = %d\n", a, b, n);
 
+
+		SOAPMethod multmethod("mult", ns);
 		multmethod.AddParameter("a") << a;
 		multmethod.AddParameter("b") << b;
+
 		const SOAPResponse& multresp = proxy.Execute(multmethod);
+
 		multresp.GetReturnValue() >> n;
+
 		printf("%d * %d = %d\n", a, b, n);
 
 		return 0;

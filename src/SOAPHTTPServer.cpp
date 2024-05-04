@@ -16,15 +16,15 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPHTTPServer.cpp,v 1.6 2001/09/05 19:26:36 dcrowley Exp $
+ * $Id: SOAPHTTPServer.cpp,v 1.11 2001/12/11 01:53:44 dcrowley Exp $
  */
 
 
-#include "SOAPHTTPServer.h"
-
+#include <easysoap/SOAPHTTPServer.h>
+#include <easysoap/SOAPonHTTP.h>
 
 extern "C" {
-#include "abyss.h"
+#include <abyss.h>
 }
 
 //
@@ -41,11 +41,13 @@ public:
 } _abyssinit;
 
 
+BEGIN_EASYSOAP_NAMESPACE
+
 //
 // Class for reading the socket/session the web server
 // hands to us.
 //
-class SOAPHTTPServerTransport : public SOAPTransport
+class SOAPHTTPServerTransport : public SOAPServerTransport
 {
 public:
 	SOAPHTTPServerTransport(struct _TSession *session);
@@ -53,6 +55,8 @@ public:
 
 	void SetError();
 	const char *GetCharset() const;
+	const char *GetContentType() const;
+	const char *GetSoapAction() const;
 	size_t Read(char *buffer, size_t buffsize);
 	size_t Write(const SOAPMethod& method, const char *payload, size_t payloadsize);
 
@@ -60,8 +64,13 @@ private:
 	struct _TSession	*m_session;
 	size_t				m_bytestoread;
 	SOAPString			m_charset;
+	SOAPString			m_contentType;
 	bool				m_error;
 };
+
+END_EASYSOAP_NAMESPACE
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPHTTPServerTransport::SOAPHTTPServerTransport(struct _TSession *session)
 : m_session(session), m_bytestoread(0), m_error(false)
@@ -72,7 +81,7 @@ SOAPHTTPServerTransport::SOAPHTTPServerTransport(struct _TSession *session)
 	if (contlen)
 		m_bytestoread = atoi(contlen);
 
-	ParseContentType(m_charset, contype);
+	SOAPHTTPProtocol::ParseContentType(m_contentType, m_charset, contype);
 }
 
 SOAPHTTPServerTransport::~SOAPHTTPServerTransport()
@@ -86,9 +95,21 @@ SOAPHTTPServerTransport::SetError()
 }
 
 const char *
+SOAPHTTPServerTransport::GetContentType() const
+{
+	return m_contentType;
+}
+
+const char *
 SOAPHTTPServerTransport::GetCharset() const
 {
 	return m_charset;
+}
+
+const char *
+SOAPHTTPServerTransport::GetSoapAction() const
+{
+	return TableFind(&m_session->request_headers, "soapaction");
 }
 
 size_t
@@ -107,7 +128,7 @@ SOAPHTTPServerTransport::Read(char *buffer, size_t buffsize)
 }
 
 size_t
-SOAPHTTPServerTransport::Write(const SOAPMethod& method, const char *payload, size_t payloadsize)
+SOAPHTTPServerTransport::Write(const SOAPMethod&, const char *payload, size_t payloadsize)
 {
 	char lenstr[32];
 	snprintf(lenstr, sizeof(lenstr), "%u", payloadsize);

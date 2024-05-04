@@ -16,28 +16,66 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPNamespaces.cpp,v 1.1 2001/08/22 18:56:12 dcrowley Exp $
+ * $Id: SOAPNamespaces.cpp,v 1.5 2001/11/29 08:37:13 dcrowley Exp $
  */
 
 
-#include <SOAP.h>
-#include <SOAPNamespaces.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPNamespaces.h>
 
-const SOAPQName SOAPEnc::root("root", SOAP_ENC);
-const SOAPQName SOAPEnc::Array("Array", SOAP_ENC);
-const SOAPQName SOAPEnc::arrayType("arrayType", SOAP_ENC);
-const SOAPQName SOAPEnc::offset("offset", SOAP_ENC);
-const SOAPQName SOAPEnc::position("position", SOAP_ENC);
-const SOAPQName SOAPEnc::base64("base64", SOAP_ENC);
+#include "es_namespaces.h"
 
-const SOAPQName SOAPEnv::Body("Body", SOAP_ENV);
-const SOAPQName SOAPEnv::Header("Header", SOAP_ENV);
-const SOAPQName SOAPEnv::Envelope("Envelope", SOAP_ENV);
-const SOAPQName SOAPEnv::Fault("Fault", SOAP_ENV);
-const SOAPQName SOAPEnv::encodingStyle("encodingStyle", SOAP_ENV);
-const SOAPQName SOAPEnv::mustUnderstand("mustUnderstand", SOAP_ENV);
-const SOAPQName SOAPEnv::actor("actor", SOAP_ENV);
+USING_EASYSOAP_NAMESPACE
 
-const SOAPQName XMLSchemaInstance::nil("nil", SOAP_XSI);
-const SOAPQName XMLSchemaInstance::type("type", SOAP_XSI);
+const char *SOAPEnc::base = SOAP_ENC;
+
+const SOAPQName SOAPEnc::root("root", SOAPEnc::base);
+const SOAPQName SOAPEnc::Array("Array", SOAPEnc::base);
+const SOAPQName SOAPEnc::arrayType("arrayType", SOAPEnc::base);
+const SOAPQName SOAPEnc::offset("offset", SOAPEnc::base);
+const SOAPQName SOAPEnc::position("position", SOAPEnc::base);
+const SOAPQName SOAPEnc::base64("base64", SOAPEnc::base);
+
+const char *SOAPEnv::base = SOAP_ENV;
+const SOAPQName SOAPEnv::Body("Body", SOAPEnv::base);
+const SOAPQName SOAPEnv::Header("Header", SOAPEnv::base);
+const SOAPQName SOAPEnv::Envelope("Envelope", SOAPEnv::base);
+const SOAPQName SOAPEnv::Fault("Fault", SOAPEnv::base);
+const SOAPQName SOAPEnv::encodingStyle("encodingStyle", SOAPEnv::base);
+const SOAPQName SOAPEnv::mustUnderstand("mustUnderstand", SOAPEnv::base);
+const SOAPQName SOAPEnv::actor("actor", SOAPEnv::base);
+
+const char *XMLSchema1999::xsi = SOAP_XSI_1999;
+const char *XMLSchema1999::xsd = SOAP_XSD_1999;
+const SOAPQName XMLSchema1999::null("null", XMLSchema1999::xsi);
+const SOAPQName XMLSchema1999::type("type", XMLSchema1999::xsi);
+
+const char *XMLSchema2001::xsi = SOAP_XSI_2001;
+const char *XMLSchema2001::xsd = SOAP_XSD_2001;
+const SOAPQName XMLSchema2001::nil("nil", XMLSchema2001::xsi);
+const SOAPQName XMLSchema2001::type("type", XMLSchema2001::xsi);
+
+const SOAPQName XMLSchema2001::string("string", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::boolean("boolean", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::decimal("decimal", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::float_("float", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::double_("double", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::duration("duration", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::dateTime("dateTime", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::time("time", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::date("date", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::base64Binary("base64Binary", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::hexBinary("hexBinary", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::integer("integer", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::nonPositiveInteger("nonPositiveInteger", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::long_("long", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::int_("int", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::short_("short", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::byte("byte", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::nonNegativeInteger("nonNegativeInteger", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::unsignedLong("unsignedLong", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::unsignedInt("unsignedInt", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::unsignedShort("unsignedShort", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::unsignedByte("unsignedByte", XMLSchema2001::xsd);
+const SOAPQName XMLSchema2001::positiveInteger("positiveInteger", XMLSchema2001::xsd);
 

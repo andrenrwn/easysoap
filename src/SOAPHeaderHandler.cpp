@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPHeaderHandler.cpp,v 1.10 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPHeaderHandler.cpp,v 1.15 2003/06/03 17:30:14 dcrowley Exp $
  */
 
 
@@ -24,14 +24,16 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPNamespaces.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPNamespaces.h>
 
 #include "SOAPHeaderHandler.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPHeaderHandler::SOAPHeaderHandler()
 : m_header(0)
@@ -51,15 +53,15 @@ SOAPHeaderHandler::SetHeader(SOAPHeader& header)
 }
 
 SOAPParseEventHandler *
-SOAPHeaderHandler::start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPHeaderHandler::start(SOAPParser&, const char *, const char **)
 {
 	return this;
 }
 
 SOAPParseEventHandler *
-SOAPHeaderHandler::startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs)
+SOAPHeaderHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
-	m_paramHandler.SetParameter(m_header->AddHeader());
+	m_paramHandler.SetParameter(&m_header->AddHeader());
 	return m_paramHandler.start(parser, name, attrs);
 }
 

@@ -16,11 +16,11 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPTypeTraits.cpp,v 1.8 2001/09/06 00:43:41 dcrowley Exp $
+ * $Id: SOAPTypeTraits.cpp,v 1.19 2004/10/12 01:37:46 dcrowley Exp $
  */
 
-#include <SOAP.h>
-#include <SOAPParameter.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPParameter.h>
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -42,12 +42,17 @@
 #include <float.h>
 #endif
 
+USING_EASYSOAP_NAMESPACE
+
 static int
 sp_strtol(const char *str)
 {
     char *endptr = 0;
-    const char *startptr = str;
-    int ret = strtol(startptr, &endptr, 10);
+	const char *startptr = str;
+	int ret;
+
+	errno = 0;
+	ret	= strtol(startptr, &endptr, 10);
 
     if (endptr)
     {
@@ -63,6 +68,32 @@ sp_strtol(const char *str)
 		throw SOAPException("Integer %s: %s",
 				(ret < 0) ? "underflow" : "overflow",
 				str);
+
+	return ret;
+}
+
+
+static int
+sp_strtoul(const char *str)
+{
+	char *endptr = 0;
+	const char *startptr = str;
+	int ret;
+
+	errno = 0;
+	ret = strtoul(startptr, &endptr, 10);
+
+	if (endptr)
+	{
+		while (sp_isspace(*endptr))
+			++endptr;
+
+		if (startptr == endptr || *endptr != 0)
+			throw SOAPException("Could not convert string to unsigned integer: '%s'",
+					str);
+	}
+	if (errno == ERANGE)
+		throw SOAPException("Unsigned integer overflow: %s", str);
 
 	return ret;
 }
@@ -98,7 +129,10 @@ sp_strtod(const char *str)
 
 	char *endptr = 0;
 	const char *startptr = str;
-	double ret = strtod(startptr, &endptr);
+	double ret;
+
+	errno = 0;
+	ret = strtod(startptr, &endptr);
 
 	if (endptr)
 	{
@@ -122,7 +156,7 @@ sp_strtod(const char *str)
 //  Trait info for bool
 void SOAPTypeTraits<bool>::GetType(SOAPQName& type)
 {
-	type.Set("boolean", SOAP_XSD);
+	type = XMLSchema2001::boolean;
 }
 
 SOAPParameter&
@@ -136,7 +170,7 @@ SOAPParameter&
 SOAPTypeTraits<bool>::Serialize(SOAPParameter& param, const char *val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -165,7 +199,7 @@ SOAPTypeTraits<bool>::Deserialize(const SOAPParameter& param, bool& val)
 //  Trait info for char
 void SOAPTypeTraits<char>::GetType(SOAPQName& type)
 {
-	type.Set("byte", SOAP_XSD);
+	type = XMLSchema2001::byte;
 }
 
 SOAPParameter&
@@ -187,8 +221,8 @@ SOAPTypeTraits<char>::Deserialize(const SOAPParameter& param, char& val)
     if (param.IsNull() || str.IsEmpty())
         throw SOAPException("Cannot convert null value to byte.");
 
-	int v;
-	val = v = sp_strtol(str);
+	int v = sp_strtol(str);
+	val = char(v);
 	if (v != val)
 		throw SOAPException("Value out of range for byte: %d", v);
 	return param;
@@ -199,7 +233,7 @@ SOAPTypeTraits<char>::Deserialize(const SOAPParameter& param, char& val)
 //  Trait info for short
 void SOAPTypeTraits<short>::GetType(SOAPQName& type)
 {
-	type.Set("short", SOAP_XSD);
+	type = XMLSchema2001::short_;
 }
 
 SOAPParameter&
@@ -221,8 +255,8 @@ SOAPTypeTraits<short>::Deserialize(const SOAPParameter& param, short& val)
     if (param.IsNull() || str.IsEmpty())
         throw SOAPException("Cannot convert null value to short.");
 
-	int v;
-	val = v = sp_strtol(str);
+	int v = sp_strtol(str);
+	val = short(v);
 	if (v != val)
 		throw SOAPException("Value out of range for short: %d", v);
 	return param;
@@ -233,7 +267,7 @@ SOAPTypeTraits<short>::Deserialize(const SOAPParameter& param, short& val)
 //  Trait info for int
 void SOAPTypeTraits<int>::GetType(SOAPQName& type)
 {
-	type.Set("int", SOAP_XSD);
+	type = XMLSchema2001::int_;
 }
 
 SOAPParameter&
@@ -249,7 +283,7 @@ SOAPParameter&
 SOAPTypeTraits<int>::Serialize(SOAPParameter& param, const char *val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -269,40 +303,50 @@ SOAPTypeTraits<int>::Deserialize(const SOAPParameter& param, int& val)
 }
 
 
-void SOAPTypeTraits<long>::GetType(SOAPQName& type)
+//
+//  Trait info for unsigned int
+void SOAPTypeTraits<unsigned int>::GetType(SOAPQName& type)
 {
-	type.Set("int", SOAP_XSD);
+	type = XMLSchema2001::unsignedInt;
 }
 
 SOAPParameter&
-SOAPTypeTraits<long>::Serialize(SOAPParameter& param, long val)
+SOAPTypeTraits<unsigned int>::Serialize(SOAPParameter& param, unsigned int val)
 {
 	char buffer[64];
 	sp_itoa(val, buffer);
-	param.GetStringRef() = buffer;
+	Serialize(param, buffer);
+	return param;
+}
+
+SOAPParameter&
+SOAPTypeTraits<unsigned int>::Serialize(SOAPParameter& param, const char *val)
+{
+	if (!val)
+		param.AddAttribute(XMLSchema2001::nil) = "true";
+	param.GetStringRef() = val;
 	return param;
 }
 
 const SOAPParameter&
-SOAPTypeTraits<long>::Deserialize(const SOAPParameter& param, long& val)
+SOAPTypeTraits<unsigned int>::Deserialize(const SOAPParameter& param, unsigned int& val)
 {
 	const SOAPString& str = param.GetString();
     if (param.IsStruct())
-        throw SOAPException("Cannot convert a struct to an integer.");
+        throw SOAPException("Cannot convert a struct to an unsigned integer.");
 
     if (param.IsNull() || str.IsEmpty())
-        throw SOAPException("Cannot convert null value to integer.");
+        throw SOAPException("Cannot convert null value to unsigned integer.");
 
-	val = sp_strtol(str);
+	val = sp_strtoul(str);
 	return param;
 }
-
 
 //
 //  Trait info for float
 void SOAPTypeTraits<float>::GetType(SOAPQName& type)
 {
-	type.Set("float", SOAP_XSD);
+	type = XMLSchema2001::float_;
 }
 
 SOAPParameter&
@@ -331,7 +375,7 @@ SOAPParameter&
 SOAPTypeTraits<float>::Serialize(SOAPParameter& param, const char *val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -346,7 +390,7 @@ SOAPTypeTraits<float>::Deserialize(const SOAPParameter& param, float& val)
 		throw SOAPException("Cannot convert null value to float.");
 
 	double dret = sp_strtod(param.GetStringRef());
-	float ret = dret;
+	float ret = (float)dret;
 
 	if (ret == HUGE_VAL && dret != HUGE_VAL ||
         ret == -HUGE_VAL && dret != -HUGE_VAL)
@@ -363,7 +407,7 @@ SOAPTypeTraits<float>::Deserialize(const SOAPParameter& param, float& val)
 
 void SOAPTypeTraits<double>::GetType(SOAPQName& type)
 {
-	type.Set("double", SOAP_XSD);
+	type = XMLSchema2001::double_;
 }
 
 SOAPParameter&
@@ -391,7 +435,7 @@ SOAPParameter&
 SOAPTypeTraits<double>::Serialize(SOAPParameter& param, const char *val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -413,14 +457,14 @@ SOAPTypeTraits<double>::Deserialize(const SOAPParameter& param, double& val)
 //  Trait info for const char *
 void SOAPTypeTraits<const char *>::GetType(SOAPQName& type)
 {
-	type.Set("string", SOAP_XSD);
+	type = XMLSchema2001::string;
 }
 
 SOAPParameter&
 SOAPTypeTraits<const char *>::Serialize(SOAPParameter& param, const char *val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -431,14 +475,14 @@ SOAPTypeTraits<const char *>::Serialize(SOAPParameter& param, const char *val)
 //  Trait info for const wchar_t *
 void SOAPTypeTraits<const wchar_t *>::GetType(SOAPQName& type)
 {
-	type.Set("string", SOAP_XSD);
+	type = XMLSchema2001::string;
 }
 
 SOAPParameter&
 SOAPTypeTraits<const wchar_t *>::Serialize(SOAPParameter& param, const wchar_t * val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -449,14 +493,14 @@ SOAPTypeTraits<const wchar_t *>::Serialize(SOAPParameter& param, const wchar_t *
 //  Trait info for SOAPString
 void SOAPTypeTraits<SOAPString>::GetType(SOAPQName& type)
 {
-	type.Set("string", SOAP_XSD);
+	type = XMLSchema2001::string;
 }
 
 SOAPParameter&
 SOAPTypeTraits<SOAPString>::Serialize(SOAPParameter& param, const SOAPString& val)
 {
 	if (!val)
-		param.AddAttribute(XMLSchemaInstance::nil) = "true";
+		param.AddAttribute(XMLSchema2001::nil) = "true";
 	param.GetStringRef() = val;
 	return param;
 }
@@ -464,6 +508,9 @@ SOAPTypeTraits<SOAPString>::Serialize(SOAPParameter& param, const SOAPString& va
 const SOAPParameter&
 SOAPTypeTraits<SOAPString>::Deserialize(const SOAPParameter& param, SOAPString& val)
 {
+	if (param.IsStruct())
+		throw SOAPException("Can't de-serialize a complex type into a string.");
+
 	if (param.IsNull())
 		val = (const char *)0;
 	else

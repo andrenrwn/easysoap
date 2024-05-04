@@ -16,14 +16,16 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPStructHandler.h,v 1.5 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPStructHandler.h,v 1.8 2003/06/03 17:30:18 dcrowley Exp $
  */
 
 
 #if !defined(AFX_SOAPSTRUCTHANDLER_H__E327D4B9_E218_497F_B0D6_66B00A168395__INCLUDED_)
 #define AFX_SOAPSTRUCTHANDLER_H__E327D4B9_E218_497F_B0D6_66B00A168395__INCLUDED_
 
-#include "SOAPParseEventHandler.h"
+#include <easysoap/SOAPParseEventHandler.h>
+
+BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPParameter;
 class SOAPParameterHandler;
@@ -36,13 +38,19 @@ public:
 
 	void	SetParameter(SOAPParameter* param)	{m_param = param;}
 
-	virtual SOAPParseEventHandler* start(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
-	virtual SOAPParseEventHandler* startElement(SOAPParser& parser, const XML_Char *name, const XML_Char **attrs);
+	virtual SOAPParseEventHandler* start(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
+	virtual SOAPParseEventHandler* startElement(SOAPParser& parser,
+			const char *name,
+			const char **attrs);
 
 private:
 	SOAPParameter			*m_param;
 	SOAPParameterHandler	*m_paramHandler;
 };
+
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPSTRUCTHANDLER_H__E327D4B9_E218_497F_B0D6_66B00A168395__INCLUDED_)
 

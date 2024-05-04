@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPDebugger.cpp,v 1.9 2001/08/24 03:59:39 dcrowley Exp $
+ * $Id: SOAPDebugger.cpp,v 1.11 2001/11/21 06:00:47 dcrowley Exp $
  */
 
 
@@ -24,7 +24,9 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAPDebugger.h>
+#include <easysoap/SOAPDebugger.h>
+
+USING_EASYSOAP_NAMESPACE
 
 FILE *SOAPDebugger::m_file = 0;
 int SOAPDebugger::m_messageLevel = 1;

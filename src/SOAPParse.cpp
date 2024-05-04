@@ -16,24 +16,31 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParse.cpp,v 1.21 2001/08/27 17:38:15 dcrowley Exp $
+ * $Id: SOAPParse.cpp,v 1.32 2004/06/02 08:01:39 dcrowley Exp $
  */
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAP.h>
-#include <SOAPParse.h>
-#include <SOAPNamespaces.h>
+#include <easysoap/SOAP.h>
+#include <easysoap/SOAPParse.h>
+#include <easysoap/SOAPNamespaces.h>
 
 #include "SOAPEnvelopeHandler.h"
+#include "es_namespaces.h"
+
+#ifdef HAVE_LIBZ
+#include <zlib.h>
+#endif // HAVE_LIBZ
 
 #define BUFF_SIZE 1024
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+USING_EASYSOAP_NAMESPACE
 
 SOAPParser::SOAPParser()
 {
@@ -54,42 +61,139 @@ SOAPParser::Parse(SOAPEnvelope& env, SOAPTransport& trans)
 
 	// make sure our stack is empty
 	m_handlerstack.Clear();
-	m_hrefmap.Clear();
 	m_nsmap.Clear();
 
-	InitParser(trans.GetCharset());
-	while (1)
+	//
+	// clear out any id/href info
+	// we have hanging around...
+	m_idmap.Clear();
+	m_hrefs.Resize(0);
+
+	const char *contentType = trans.GetContentType();
+	if (contentType && sp_strcmp(contentType, "text/xml"))
+		throw SOAPException("Unexpected content type, only support text/xml: %s", contentType);
+
+#ifdef HAVE_LIBZ
+	bool inflateflag = false;
+	// windowSize for zlib
+	int windowBits = 15; // zlib header
+	const char *contentEncoding = trans.GetContentEncoding();
+	if (contentEncoding)
 	{
-		//
-		// create a buffer to read the HTTP payload into
-		//
-		void *buffer = GetParseBuffer(BUFF_SIZE);
-		if (!buffer)
-			throw SOAPMemoryException();
-
-		//
-		// read the HTTP payload
-		//
-		int read = trans.Read((char *)buffer, BUFF_SIZE);
-		if (!ParseBuffer(read))
+		if (sp_strcmp(contentEncoding, "gzip") == 0)
 		{
-			throw SOAPException(
-				"Error while parsing SOAP XML payload: %s",
-				GetErrorMessage());
+			windowBits += 16; // needed to enable gzip.  details in zlib.h
+			inflateflag = true;
 		}
-
-		if (read != 0 && m_handler->Done())
+		else if (sp_strcmp(contentEncoding, "deflate") == 0)
 		{
-			ParseBuffer(0);
-			break;
+			inflateflag = true;
 		}
 	}
+
+	z_stream stream;
+	stream.zalloc = (alloc_func)0;
+	stream.zfree = (free_func)0;
+	stream.opaque = (voidpf)0;
+
+	if (inflateflag)
+	{
+		int res = inflateInit2(&stream, windowBits);
+		if (res != Z_OK)
+		{
+			inflateEnd(&stream);
+			if (res == Z_VERSION_ERROR)
+				throw SOAPException("Version error in zlib initialization.");
+			else
+				throw SOAPMemoryException();
+		}
+	}
+#endif // HAVE_LIBZ
+
+	InitParser(trans.GetCharset());
+	for (;;)
+	{
+#ifdef HAVE_LIBZ
+		if (inflateflag)
+		{
+			Bytef cbuffer[BUFF_SIZE];
+			int read = trans.Read((char *)cbuffer, BUFF_SIZE);
+			stream.next_in = cbuffer;
+			stream.avail_in = read;
+
+			while (stream.avail_in > 0)
+			{
+				void *buffer = GetParseBuffer(BUFF_SIZE);
+				if (!buffer)
+				{
+					inflateEnd(&stream);
+					throw SOAPMemoryException();
+				}
+
+				stream.next_out = (Bytef *)buffer;
+				stream.avail_out = BUFF_SIZE;
+
+				// do inflate
+				int res = inflate(&stream, Z_SYNC_FLUSH);
+
+				if (res == Z_OK || res == Z_STREAM_END)
+				{
+					if (!ParseBuffer(BUFF_SIZE-stream.avail_out))
+					{
+						inflateEnd(&stream);
+						throw SOAPException(
+							"Error while parsing SOAP XML payload: %s",
+							GetErrorMessage());
+					}
+				}
+				else
+				{
+					inflateEnd(&stream);
+					throw SOAPException("Error while inflating SOAP XML payload");
+				}
+			}
+
+			if (read == 0)
+				break;
+		}
+		else
+#endif // HAVE_LIBZ
+		{
+			//
+			// create a buffer to read the HTTP payload into
+			//
+			void *buffer = GetParseBuffer(BUFF_SIZE);
+			if (!buffer)
+				throw SOAPMemoryException();
+
+			//
+			// read the HTTP payload
+			//
+			int read = trans.Read((char *)buffer, BUFF_SIZE);
+			if (!ParseBuffer(read))
+			{
+				throw SOAPException(
+					"Error while parsing SOAP XML payload: %s",
+					GetErrorMessage());
+			}
+
+			if (read == 0)
+				break;
+		}
+	}
+
+#ifdef HAVE_LIBZ
+	if (inflateflag)
+		inflateEnd(&stream);
+#endif // HAVE_LIBZ
+
+	HandleHRefs();
 
 	return env;
 }
 
 void
-SOAPParser::startElement(const XML_Char *name, const XML_Char **attrs)
+SOAPParser::startElement(const char *name, const char **attrs)
 {
 	SOAPParseEventHandler* handler = 0;
 	if (m_handlerstack.IsEmpty())
@@ -125,24 +229,24 @@ SOAPParser::startElement(const XML_Char *name, const XML_Char **attrs)
 }
 
 void
-SOAPParser::characterData(const XML_Char *str, int len)
+SOAPParser::characterData(const char *str, int len)
 {
 	SOAPParseEventHandler* handler = m_handlerstack.Top();
 	if (handler)
-		handler->characterData(str, len);
+		handler->characterData(*this, str, len);
 }
 
 void
-SOAPParser::endElement(const XML_Char *name)
+SOAPParser::endElement(const char *name)
 {
 	SOAPParseEventHandler* handler = m_handlerstack.Top();
 	if (handler)
-		handler->endElement(name);
+		handler->endElement(*this, name);
 	m_handlerstack.Pop();
 }
 
 void
-SOAPParser::startNamespace(const XML_Char *prefix, const XML_Char *uri)
+SOAPParser::startNamespace(const char *prefix, const char *uri)
 {
 	if (prefix)
 		m_work = prefix;
@@ -153,7 +257,7 @@ SOAPParser::startNamespace(const XML_Char *prefix, const XML_Char *uri)
 }
 
 void
-SOAPParser::endNamespace(const XML_Char *prefix)
+SOAPParser::endNamespace(const char *prefix)
 {
 	if (prefix)
 		m_work = prefix;
@@ -163,19 +267,19 @@ SOAPParser::endNamespace(const XML_Char *prefix)
 	m_nsmap.Remove(m_work);
 }
 
-SOAPParameter *
-SOAPParser::GetHRefParam(const SOAPString& name)
+void
+SOAPParser::SetHRefParam(SOAPParameter *param)
 {
-	HRefMap::Iterator i = m_hrefmap.Find(name);
-	if (i)
-		return *i;
-	return 0;
+	m_hrefs.Add(param);
 }
 
 void
-SOAPParser::SetHRefParam(const SOAPString& name, SOAPParameter *param)
+SOAPParser::SetIdParam(const char *id, SOAPParameter *param)
 {
-	m_hrefmap[name] = param;
+	IdMap::Iterator i = m_idmap.Find(id);
+	if (i)
+		throw SOAPException("Found parameter with duplicate id='%s'", id);
+	m_idmap[id] = param;
 }
 
 const char *
@@ -189,3 +293,29 @@ SOAPParser::ExpandNamespace(const char *ns, const char *nsend) const
 	return 0;
 }
 
+void
+SOAPParser::HandleHRefs()
+{
+	//
+	// For all of the parameters with href's
+	// which were registerd, link them to
+	// the param with the corresponding id.
+	for (HRefArray::Iterator i = m_hrefs.Begin(); i != m_hrefs.End(); ++i)
+	{
+		SOAPParameter *p = *i;
+		SOAPParameter::Attrs::Iterator href = p->GetAttributes().Find("href");
+		if (!href)
+			throw SOAPException("Somehow a parameter without an href got in the href map...");
+		const char *h = href.Item().GetName();
+		if (*h == '#')
+		{
+			IdMap::Iterator id = m_idmap.Find(++h);
+			if (!id)
+				throw SOAPException("Could not find parameter for href='%s'", --h);
+			SOAPParameter *pid = *id;
+			p->LinkTo(*pid);
+		}
+		else
+			throw SOAPException("Could not resolve href='%s'", h);
+	}
+}

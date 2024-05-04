@@ -16,41 +16,57 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSecureSocketImp.h,v 1.4 2001/08/21 21:39:42 dcrowley Exp $
+ * $Id: SOAPSecureSocketImp.h,v 1.18 2004/06/02 06:33:05 dcrowley Exp $
  */
 
 
 #if !defined(AFX_SOAPSECURESOCKETIMP_H__7481DF95_30AD_4892_B5E4_44463F2F6D42__INCLUDED_)
 #define AFX_SOAPSECURESOCKETIMP_H__7481DF95_30AD_4892_B5E4_44463F2F6D42__INCLUDED_
 
+#include <easysoap/SOAPSocket.h>
 #include "SOAPClientSocketImp.h"
 
 struct ssl_st;
-struct ssl_ctx_st;
 
-class SOAPSecureSocketImp : public SOAPClientSocketImp
+BEGIN_EASYSOAP_NAMESPACE
+
+class SOAPSSLContext;
+
+class SOAPSecureSocketImp : public SOAPSocketInterface
 {
 private:
-	typedef SOAPClientSocketImp super;
+	SOAPClientSocketImp m_socket;
+	void NotSupported();
 
 protected:
-	ssl_st		*m_ssl;
-	ssl_ctx_st	*m_ctx;
+	ssl_st				*m_ssl;
+	SOAPSSLContext		        *m_context;
+	bool				m_delctx;
+        void                            *m_cbdata;
 
-	bool	HandleError(const char *context, int retcode);
+	bool HandleError(const char *context, int retcode, bool shouldWait = true);
+	void InitSSL();
+	void VerifyCert(const char* host);
+	const char* CheckForCertError(int rc);
 public:
 	SOAPSecureSocketImp();
+	SOAPSecureSocketImp(SOAPSSLContext& ctx, void* cbdata=0);
 	virtual ~SOAPSecureSocketImp();
 
+	virtual bool WaitRead(int sec = -1, int usec = 0);
+	virtual bool WaitWrite(int sec = -1, int usec = 0);
+	virtual bool IsOpen();
 	virtual void Close();
-	virtual bool Connect(const char *host, unsigned int port);
+	virtual bool Connect(const char *host, unsigned int port) {
+		return Connect(host, port, true);
+	}
+	virtual bool Connect(const char *host, unsigned int port, bool client );
 	virtual size_t Read(char *buffer, size_t len);
 	virtual size_t Write(const char *buffer, size_t len);
-	virtual bool WaitRead(int sec, int usec);
 
-	void InitSSL();
 };
 
+END_EASYSOAP_NAMESPACE
 
 #endif // !defined(AFX_SOAPSECURESOCKETIMP_H__7481DF95_30AD_4892_B5E4_44463F2F6D42__INCLUDED_)
 

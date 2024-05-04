@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPClientSocketImp.cpp,v 1.25 2001/09/06 06:09:53 dcrowley Exp $
+ * $Id: SOAPClientSocketImp.cpp,v 1.35 2002/07/01 18:25:28 dcrowley Exp $
  */
 
 
@@ -24,7 +24,7 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <SOAPDebugger.h>
+#include <easysoap/SOAPDebugger.h>
 
 #include "SOAPClientSocketImp.h"
 
@@ -57,11 +57,16 @@ public:
 
 	~WinSockInit()
 	{
-		WSACleanup();
+		if (didinit)
+			WSACleanup();
 	}
 } __winsockinit;
 
 #else // not _WIN32
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -87,6 +92,10 @@ public:
 #include <arpa/inet.h>
 #endif
 
+#ifdef HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+
 #ifdef HAVE_RESOLV_H
 #include <resolv.h>
 #endif
@@ -97,6 +106,10 @@ public:
 
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
 #endif
 
 #ifdef HAVE_MEMORY_H
@@ -121,12 +134,14 @@ public:
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+USING_EASYSOAP_NAMESPACE
+
 SOAPClientSocketImp::SOAPClientSocketImp()
 : m_socket(INVALID_SOCKET)
 {
 #if defined (_WIN32)
 	__winsockinit.Init();
-#endif;
+#endif
 }
 
 SOAPClientSocketImp::~SOAPClientSocketImp()
@@ -137,6 +152,7 @@ SOAPClientSocketImp::~SOAPClientSocketImp()
 void
 SOAPClientSocketImp::Close()
 {
+	SOAPDebugger::Print(5, "SOAPClientSocketImp::Close()\r\n");
 	if (m_socket != INVALID_SOCKET)
 	{
 		closesocket(m_socket);
@@ -172,9 +188,9 @@ SOAPClientSocketImp::WaitRead(int sec, int usec)
 	int ret = select(m_socket+1, &rset, 0, &eset, sec == -1 ? 0 : &tv);
 	int rsetresult = FD_ISSET(m_socket, &rset);
 	int esetresult = FD_ISSET(m_socket, &eset);
-	SOAPDebugger::Print(3, "read select() return: %d\r\n", ret);
-	SOAPDebugger::Print(4, "write select() wset: %d\r\n", rsetresult);
-	SOAPDebugger::Print(4, "write select() eset: %d\r\n", esetresult);
+	SOAPDebugger::Print(3, "read select() return: %d\n", ret);
+	SOAPDebugger::Print(4, "write select() wset: %d\n", rsetresult);
+	SOAPDebugger::Print(4, "write select() eset: %d\n", esetresult);
 	if (ret == (int)SOCKET_ERROR)
 		throw SOAPException("WaitRead select error");
 
@@ -198,9 +214,9 @@ SOAPClientSocketImp::WaitWrite(int sec, int usec)
 	int ret = select(m_socket+1, 0, &wset, &eset, sec == -1 ? 0 : &tv);
 	int wsetresult = FD_ISSET(m_socket, &wset);
 	int esetresult = FD_ISSET(m_socket, &eset);
-	SOAPDebugger::Print(3, "write select() return: %d\r\n", ret);
-	SOAPDebugger::Print(4, "write select() wset: %d\r\n", wsetresult);
-	SOAPDebugger::Print(4, "write select() eset: %d\r\n", esetresult);
+	SOAPDebugger::Print(3, "write select() return: %d\n", ret);
+	SOAPDebugger::Print(4, "write select() wset: %d\n", wsetresult);
+	SOAPDebugger::Print(4, "write select() eset: %d\n", esetresult);
 	if (ret == (int)SOCKET_ERROR)
 		throw SOAPException("WaitWrite select error");
 
@@ -217,6 +233,7 @@ SOAPClientSocketImp::IsOpen()
 bool
 SOAPClientSocketImp::Connect(const char *server, unsigned int port)
 {
+	SOAPDebugger::Print(5, "SOAPClientSocketImp::Connect()\r\n");
 	Close();
 
 	//
@@ -225,7 +242,13 @@ SOAPClientSocketImp::Connect(const char *server, unsigned int port)
 	m_socket = 0;
 	m_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (m_socket == INVALID_SOCKET)
+	{
+#ifdef HAVE_STRERROR
+		throw SOAPSocketException("Error creating socket: %s", strerror(errno));
+#else
 		throw SOAPSocketException("Error creating socket");
+#endif
+	}
 
 	struct sockaddr_in sockAddr;
 	sp_memset(&sockAddr, 0, sizeof(sockAddr));
@@ -233,7 +256,13 @@ SOAPClientSocketImp::Connect(const char *server, unsigned int port)
 	sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(m_socket, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) == (int)SOCKET_ERROR)
+	{
+#ifdef HAVE_STRERROR
+		throw SOAPSocketException("Error binding socket: %s", strerror(errno));
+#else
 		throw SOAPSocketException("Error binding socket");
+#endif
+	}
 
 	sp_memset(&sockAddr, 0, sizeof(sockAddr));
 	sockAddr.sin_family = AF_INET;
@@ -256,21 +285,34 @@ SOAPClientSocketImp::Connect(const char *server, unsigned int port)
 	if (connect(m_socket, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) == (int)SOCKET_ERROR)
 	{
 		Close();
-		throw SOAPSocketException("Connection refused to host: %s:%d", server, port);
+#ifdef HAVE_STRERROR
+		throw SOAPSocketException("Failed to connect to host %s, port %d: %s", server, port, strerror(errno));
+#else
+		throw SOAPSocketException("Failed to connect to host %s, port %d", server, port);
+#endif
 	}
 
 	int nodelay = 1;
 	struct protoent *tcpproto = getprotobyname("tcp");
 	if (!tcpproto)
 	{
-		throw SOAPSocketException("Could not get TCP proto struct.");
+		//
+		// Couldn't get the struct by name (/etc/protocols missing?)
+		// So lets try by number.  TCP should always be 6, we hope...
+		tcpproto = getprotobynumber(6);
+		if (!tcpproto)
+			throw SOAPSocketException("Could not get TCP protocol struct.");
 	}
 
 	if (setsockopt(m_socket, tcpproto->p_proto, TCP_NODELAY, (const char *)&nodelay, sizeof(nodelay)) == -1)
 	{
-		throw SOAPSocketException("Could not set TCP_NODELAY");
+#ifdef HAVE_STRERROR
+		throw SOAPSocketException("Error setting TCP_NODELAY: %s", strerror(errno));
+#else
+		throw SOAPSocketException("Error setting TCP_NODELAY");
+#endif
 	}
-
+	SOAPDebugger::Print(5, "SOAPClientSocketImp::Connect() successful\r\n");
 	return true;
 }
 
@@ -282,7 +324,7 @@ SOAPClientSocketImp::Read(char *buff, size_t bufflen)
 	{
 		*buff = 0;
 		bytes = recv(m_socket, buff, bufflen, 0);
-		SOAPDebugger::Print(2, "RECV: %d bytes\r\n", bytes);
+		SOAPDebugger::Print(2, "RECV: %d bytes\n", bytes);
 		if (bytes == 0)
 		{
 			Close(); // other side dropped the connection
@@ -304,7 +346,7 @@ SOAPClientSocketImp::Write(const char *buff, size_t bufflen)
 	if (bufflen > 0)
 	{
 		bytes = send(m_socket, buff, bufflen, 0);
-		SOAPDebugger::Print(2, "SEND: %d bytes\r\n", bytes);
+		SOAPDebugger::Print(2, "SEND: %d bytes\n", bytes);
 		if (bytes == (int)SOCKET_ERROR)
 		{
 			Close();
