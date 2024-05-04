@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSecureSocketImp.h,v 1.18 2004/06/02 06:33:05 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPSecureSocketImp.h#1 $
  */
 
 
@@ -36,7 +36,6 @@ class SOAPSecureSocketImp : public SOAPSocketInterface
 {
 private:
 	SOAPClientSocketImp m_socket;
-	void NotSupported();
 
 protected:
 	ssl_st				*m_ssl;
@@ -45,7 +44,7 @@ protected:
         void                            *m_cbdata;
 
 	bool HandleError(const char *context, int retcode, bool shouldWait = true);
-	void InitSSL();
+	int InitSSL();
 	void VerifyCert(const char* host);
 	const char* CheckForCertError(int rc);
 public:
@@ -61,6 +60,11 @@ public:
 		return Connect(host, port, true);
 	}
 	virtual bool Connect(const char *host, unsigned int port, bool client );
+        bool ConnectWithoutInitSSL(const char *host, unsigned int port, bool client);
+        bool ConnectWithoutInitSSL(const char *host, unsigned int port) {
+                return ConnectWithoutInitSSL(host, port, true);
+        }
+        void InitSSLAfterConnect();
 	virtual size_t Read(char *buffer, size_t len);
 	virtual size_t Write(const char *buffer, size_t len);
 

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPUtil.h,v 1.7 2004/06/02 06:33:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPUtil.h#1 $
  */
 
 #ifndef __SOAPUTIL_H__
@@ -223,7 +223,7 @@ sp_memset(void *s, int c, size_t n)
 	if (ptr)
 	{
 		while (n--)
-			*ptr++ = (unsigned char)c;
+			*ptr++ = c;
 	}
 	return s;
 }
@@ -250,7 +250,7 @@ sp_hashcodecase(const char *key)
 	if (ptr)
 	{
 		unsigned int c;
-		while ((c = sp_toupper(*ptr++)) != 0)
+		while ((c = sp_toupper(*ptr++)))
 			h = 31 * h + c;
 	}
 	return h;
@@ -289,7 +289,7 @@ sp_itoa(L a, T *const buffer)
 		// get the base 10 remainder
 		while (a != 0)
 		{
-			*ptr++ = T('0' - (a % 10));
+			*ptr++ = '0' - (a % 10);
 			a /= 10;
 		}
 		*ptr++ = '-';
@@ -300,7 +300,7 @@ sp_itoa(L a, T *const buffer)
 		// get the base 10 remainder
 		do
 		{
-			*ptr++ = T((a % 10) + '0');
+			*ptr++ = (a % 10) + '0';
 			a /= 10;
 		} while (a != 0);
 	}
@@ -383,47 +383,47 @@ sp_UCS_UTF8(int c, char *& utf8)
 	if (c <= 0x7F)
 	{
 		/* Leave ASCII encoded */
-		*utf8++ = char(c);
+		*utf8++ = (c);
 	}
 	else if (c <= 0x07FF)
 	{
 		/* 110xxxxx 10xxxxxx */
-		*utf8++ = char(0xC0 | (c >> 6));
-		*utf8++ = char(0x80 | (c & 0x3F));
+		*utf8++ = (0xC0 | (c >> 6));
+		*utf8++ = (0x80 | (c & 0x3F));
 	}
 	else if (c <= 0xFFFF)
 	{
 		/* 1110xxxx + 2 */
-		*utf8++ = char(0xE0 | (c >> 12));
-		*utf8++ = char(0x80 | ((c >> 6) & 0x3F));
-		*utf8++ = char(0x80 | (c & 0x3F));
+		*utf8++ = (0xE0 | (c >> 12));
+		*utf8++ = (0x80 | ((c >> 6) & 0x3F));
+		*utf8++ = (0x80 | (c & 0x3F));
 	}
 	else if (c <= 0x1FFFFF)
 	{
 		/* 11110xxx + 3 */
-		*utf8++ = char(0xF0 | (c >> 18));
-		*utf8++ = char(0x80 | ((c >> 12) & 0x3F));
-		*utf8++ = char(0x80 | ((c >> 6) & 0x3F));
-		*utf8++ = char(0x80 | (c & 0x3F));
+		*utf8++ = (0xF0 | (c >> 18));
+		*utf8++ = (0x80 | ((c >> 12) & 0x3F));
+		*utf8++ = (0x80 | ((c >> 6) & 0x3F));
+		*utf8++ = (0x80 | (c & 0x3F));
 	}
 	else if (c <= 0x3FFFFFF)
 	{
 		/* 111110xx + 4 */
-		*utf8++ = char(0xF8 | (c >> 24));
-		*utf8++ = char(0x80 | ((c >> 18) & 0x3F));
-		*utf8++ = char(0x80 | ((c >> 12) & 0x3F));
-		*utf8++ = char(0x80 | ((c >> 6) & 0x3F));
-		*utf8++ = char(0x80 | (c & 0x3F));
+		*utf8++ = (0xF8 | (c >> 24));
+		*utf8++ = (0x80 | ((c >> 18) & 0x3F));
+		*utf8++ = (0x80 | ((c >> 12) & 0x3F));
+		*utf8++ = (0x80 | ((c >> 6) & 0x3F));
+		*utf8++ = (0x80 | (c & 0x3F));
 	}
 	else //if (c <= 0x7FFFFFFF)
 	{
 		/* 1111110x + 5 */
-		*utf8++ = char(0xFC | (c >> 30));
-		*utf8++ = char(0x80 | ((c >> 24) & 0x3F));
-		*utf8++ = char(0x80 | ((c >> 18) & 0x3F));
-		*utf8++ = char(0x80 | ((c >> 12) & 0x3F));
-		*utf8++ = char(0x80 | ((c >> 6) & 0x3F));
-		*utf8++ = char(0x80 | (c & 0x3F));
+		*utf8++ = (0xFC | (c >> 30));
+		*utf8++ = (0x80 | ((c >> 24) & 0x3F));
+		*utf8++ = (0x80 | ((c >> 18) & 0x3F));
+		*utf8++ = (0x80 | ((c >> 12) & 0x3F));
+		*utf8++ = (0x80 | ((c >> 6) & 0x3F));
+		*utf8++ = (0x80 | (c & 0x3F));
 	}
 
 	return true;

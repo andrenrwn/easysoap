@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParameter.cpp,v 1.49 2004/03/16 22:40:15 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPParameter.cpp#1 $
  */
 
 
@@ -31,100 +31,82 @@
 
 USING_EASYSOAP_NAMESPACE
 
-SOAPParameter::SOAPParameter()
-: m_parent(0)
+
+const SOAPString SOAPParameter::m_defaultName("item");
+const SOAPString SOAPParameter::m_true("true");
+const SOAPString SOAPParameter::m_false("false");
+
+
+SOAPParameter::SOAPParameter(void)
+: m_dataPtr(&m_x_data)
+{
+}
+
+SOAPParameter::SOAPParameter(const SOAPString& name)
+: m_name(name)
 , m_dataPtr(&m_x_data)
 {
-	Reset();
+}
+
+SOAPParameter::SOAPParameter(const SOAPQName& name)
+: m_name(name)
+, m_dataPtr(&m_x_data)
+{
 }
 
 SOAPParameter::SOAPParameter(const SOAPParameter& param)
-: m_parent(0)
-, m_dataPtr(&m_x_data)
+: m_dataPtr(&m_x_data)
 {
 	Assign(param);
 }
 
 SOAPParameter::~SOAPParameter()
 {
-	for (Array::Iterator i = m_dataPtr->m_array.Begin(); i != m_dataPtr->m_array.End(); ++i)
-	{
-		(*i)->SetParent(0);
-	}
-	Reset();
+}
+
+void
+SOAPParameter::Clear(void)
+{
+    m_x_data.Clear();    
+	m_dataPtr = &m_x_data;
+}
+
+void
+SOAPParameter::Data::Clear(void)
+{
+    m_params.clear();
+    m_attrs.clear();
+    m_isstruct = false;
 }
 
 void
 SOAPParameter::Assign(const SOAPParameter& param)
 {
-	Reset();
 	m_name = param.m_name;
-	m_x_data.Assign(this, *param.m_dataPtr);
+	m_x_data.Assign(*param.m_dataPtr);
+	m_dataPtr = &m_x_data;
 }
 
 
 void
-SOAPParameter::Data::Assign(SOAPParameter *parent, const Data& d)
+SOAPParameter::Data::Assign(const Data& d)
 {
 	m_strval = d.m_strval;
 	m_isstruct = d.m_isstruct;
 	m_attrs = d.m_attrs;
-
-	const Array& params = d.m_array;
-	m_array.Resize(params.Size());
-	for (size_t i = 0; i < params.Size(); ++i)
-	{
-		m_array[i] = parent->m_pool.Get(*params[i]);
-		m_array[i]->SetParent(parent);
-	}
-
-	m_outtasync = true;
-	m_struct.Clear();
+    m_params = d.m_params;
 }
 
 
 SOAPParameter&
 SOAPParameter::operator=(const SOAPParameter& param)
 {
-	Reset();
 	Assign(param);
 	return *this;
 }
 
-void
-SOAPParameter::ClearValue()
+SOAPParameter::Data::~Data()
 {
-	m_dataPtr->Clear(m_pool);
-}
-
-void
-SOAPParameter::Data::Clear(Pool& pool)
-{
-	for (Array::Iterator i = m_array.Begin(); i != m_array.End(); ++i)
-	{
-		(*i)->Reset();
-		(*i)->SetParent(0);
-		pool.Return(*i);
-	}
-
-	m_attrs.Clear();
-	m_array.Resize(0);
-	m_struct.Clear();
-	m_isstruct = false;
-	m_outtasync = false;
-	m_strval = "";
-}
-
-void
-SOAPParameter::Reset()
-{
-	if (m_parent && m_parent->m_dataPtr)
-		m_parent->m_dataPtr->m_outtasync = true;
-	m_name.GetName().Empty();
-	m_name.GetNamespace().Empty();
-
-	m_x_data.Clear(m_pool);
-	m_dataPtr = &m_x_data;
 }
 
 void
@@ -134,29 +116,37 @@ SOAPParameter::SetName(const char *name, const char *ns)
 		m_name = name;
 	else
 		m_name.Set(name, ns);
-
-	if (m_parent)
-		m_parent->m_dataPtr->m_outtasync = true;
 }
 
 void
 SOAPParameter::SetType(const char *name, const char *ns)
 {
-	AddAttribute(XMLSchema2001::type).Set(name, ns);
+	AddAttribute(XMLSchema2001::type).GetValue().Set(name, ns);
+}
+
+void
+SOAPParameter::SetType(const SOAPString& name, const SOAPString &ns)
+{
+	AddAttribute(XMLSchema2001::type).GetValue().Set(name, ns);
+}
+
+void
+SOAPParameter::SetType(const SOAPQName& type)
+{
+	AddAttribute(XMLSchema2001::type).GetValue().Set(type);
 }
 
 bool
 SOAPParameter::IsNull() const
 {
-	Attrs::Iterator null = m_dataPtr->m_attrs.Find(XMLSchema2001::nil);
+	SOAPAttribute* null = FindAttribute(XMLSchema2001::nil);
+	if (null == NULL)
+	{
+		null = FindAttribute(XMLSchema1999::null);
+	}
 
-	if (!null)
-		null = m_dataPtr->m_attrs.Find(XMLSchema1999::null);
-
-	if (null && (*null == "true" || *null == "1"))
-		return true;
-
-	return false;
+	return ((null != NULL)) &&
+			((null->GetValue() == m_true) || (null->GetValue() == "1"));
 }
 
 bool
@@ -168,10 +158,29 @@ SOAPParameter::IsStruct() const
 void
 SOAPParameter::SetNull(bool isnull)
 {
+    SOAPAttribute* null = FindAttribute(XMLSchema2001::nil);
 	if (isnull)
-		m_dataPtr->m_attrs[XMLSchema2001::nil] = "true";
+    {
+        if (null == NULL) {
+            AddAttribute(XMLSchema2001::nil, m_true);
+        } else
+		    null->SetValue(m_true);
+    }
 	else
-		m_dataPtr->m_attrs.Remove(XMLSchema2001::nil);
+    {
+        if (null != NULL)
+        {
+            for(Attrs::iterator iter = m_dataPtr->m_attrs.begin();
+                    iter != m_dataPtr->m_attrs.end(); ++iter)
+            {
+                if ((*iter).GetName() == XMLSchema2001::nil)
+                {
+                    m_dataPtr->m_attrs.erase(iter);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void
@@ -180,16 +189,94 @@ SOAPParameter::SetIsStruct()
 	m_dataPtr->m_isstruct = true;
 }
 
-SOAPQName&
+SOAPAttribute&
 SOAPParameter::AddAttribute(const SOAPQName& name)
 {
-	return m_dataPtr->m_attrs[name];
+    SOAPAttribute attribute(name);
+	m_dataPtr->m_attrs.push_back(attribute);
+    return m_dataPtr->m_attrs.back();
+}
+
+SOAPAttribute&
+SOAPParameter::AddAttribute(const SOAPQName& name, const SOAPQName& value)
+{
+    SOAPAttribute attribute(name, value);
+	m_dataPtr->m_attrs.push_back(attribute);
+    return m_dataPtr->m_attrs.back();
+}
+
+SOAPAttribute*
+SOAPParameter::FindAttribute(const char* name) const
+{
+    SOAPAttribute* attr = NULL;
+    for(Attrs::iterator iter = m_dataPtr->m_attrs.begin();
+            iter != m_dataPtr->m_attrs.end(); ++iter)
+    {
+        if ((*iter).GetName() == name)
+        {
+            attr = &*iter;
+            break;
+        }
+    }
+
+    return attr;
+}
+
+SOAPAttribute*
+SOAPParameter::FindAttribute(const SOAPQName& name) const
+{
+    SOAPAttribute* attr = NULL;
+    for(Attrs::iterator iter = m_dataPtr->m_attrs.begin();
+            iter != m_dataPtr->m_attrs.end(); ++iter)
+    {
+        if ((*iter).GetName() == name)
+        {
+            attr = &*iter;
+            break;
+        }
+    }
+
+    return attr;
+}
+
+SOAPAttribute*
+SOAPParameter::FindAccessorAttribute(const char* name) const
+{
+    SOAPAttribute* attr = NULL;
+    for(Attrs::const_iterator iter = m_x_data.m_attrs.begin();
+            iter != m_x_data.m_attrs.end(); ++iter)
+    {
+        if ((*iter).GetName() == name)
+        {
+            attr = const_cast<SOAPAttribute *>(&*iter);
+            break;
+        }
+    }
+
+    return attr;
+}
+
+SOAPAttribute*
+SOAPParameter::FindAccessorAttribute(const SOAPQName& name) const
+{
+    SOAPAttribute* attr = NULL;
+    for(Attrs::const_iterator iter = m_x_data.m_attrs.begin();
+            iter != m_x_data.m_attrs.end(); ++iter)
+    {
+        if ((*iter).GetName() == name)
+        {
+            attr = const_cast<SOAPAttribute *>(&*iter);
+            break;
+        }
+    }
+
+    return attr;
 }
 
 void
 SOAPParameter::SetValue(const char *val)
 {
-	SOAPTypeTraits<const char *>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<const char *>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<const char *>::Serialize(*this, val);
 }
 
@@ -197,65 +284,128 @@ SOAPParameter::SetValue(const char *val)
 void
 SOAPParameter::SetValue(const wchar_t *val)
 {
-	SOAPTypeTraits<const wchar_t *>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<const wchar_t *>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<const wchar_t *>::Serialize(*this, val);
 }
 #endif
 
 void
+SOAPParameter::SetValue(const SOAPString &val)
+{
+	SOAPTypeTraits<SOAPString>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<SOAPString>::Serialize(*this, val);
+}
+
+void
 SOAPParameter::SetInt(const char *val)
 {
-	SOAPTypeTraits<int>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<int>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<int>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetFloat(const char *val)
 {
-	SOAPTypeTraits<float>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<float>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<float>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetDouble(const char *val)
 {
-	SOAPTypeTraits<double>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<double>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<double>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetValue(int val)
 {
-	SOAPTypeTraits<int>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<int>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<int>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetValue(float val)
 {
-	SOAPTypeTraits<float>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<float>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<float>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetValue(double val)
 {
-	SOAPTypeTraits<double>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<double>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<double>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetBoolean(const char *val)
 {
-	SOAPTypeTraits<bool>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<bool>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<bool>::Serialize(*this, val);
 }
 
 void
 SOAPParameter::SetValue(bool val)
 {
-	SOAPTypeTraits<bool>::GetType(AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<bool>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
 	SOAPTypeTraits<bool>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetLong(const char *val)
+{
+	SOAPTypeTraits<long>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<long>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetValue(long val)
+{
+	SOAPTypeTraits<long>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<long>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetULong(const char *val)
+{
+	SOAPTypeTraits<unsigned long>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<unsigned long>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetValue(unsigned long val)
+{
+	SOAPTypeTraits<unsigned long>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<unsigned long>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetInt64(const char *val)
+{
+	SOAPTypeTraits<int64_t>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<int64_t>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetValue(int64_t val)
+{
+	SOAPTypeTraits<int64_t>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<int64_t>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetUInt64(const char *val)
+{
+	SOAPTypeTraits<u_int64_t>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<u_int64_t>::Serialize(*this, val);
+}
+
+void
+SOAPParameter::SetValue(u_int64_t val)
+{
+	SOAPTypeTraits<u_int64_t>::GetType(AddAttribute(XMLSchema2001::type).GetValue());
+	SOAPTypeTraits<u_int64_t>::Serialize(*this, val);
 }
 
 const SOAPString&
@@ -299,89 +449,119 @@ SOAPParameter::GetDouble() const
 	return ret;
 }
 
-const SOAPParameter*
-SOAPParameter::FindParameter(const char *name) const
+long
+SOAPParameter::GetLong() const
 {
-	CheckStructSync();
-	Struct::Iterator i = m_dataPtr->m_struct.Find(name);
-	if (!i)
-		return 0;
-	return *i;
+	long ret;
+	SOAPTypeTraits<long>::Deserialize(*this, ret);
+	return ret;
+}
+
+unsigned long
+SOAPParameter::GetULong() const
+{
+	unsigned long ret;
+	SOAPTypeTraits<unsigned long>::Deserialize(*this, ret);
+	return ret;
+}
+
+int64_t
+SOAPParameter::GetInt64() const
+{
+	int64_t ret;
+	SOAPTypeTraits<int64_t>::Deserialize(*this, ret);
+	return ret;
+}
+
+u_int64_t
+SOAPParameter::GetUInt64() const
+{
+	u_int64_t ret;
+	SOAPTypeTraits<u_int64_t>::Deserialize(*this, ret);
+	return ret;
 }
 
 const SOAPParameter&
 SOAPParameter::GetParameter(const char *name) const
 {
-	const SOAPParameter *p = FindParameter(name);
-	if (!p)
+	SOAPParameter* param = FindParameter(name);
+	if (param == NULL)
 		throw SOAPException("Could not find element by name: %s", name);
-	return *p;
+	return *param;
 }
+
+const SOAPParameter&
+SOAPParameter::GetParameter(const SOAPString &name) const
+{
+	return GetParameter(name.Str());
+}
+
+SOAPParameter*
+SOAPParameter::FindParameter(const char* name) const
+{
+    SOAPParameter* param = NULL;
+    for(Params::iterator iter = m_dataPtr->m_params.begin();
+            iter != m_dataPtr->m_params.end(); ++iter)
+    {
+        if ((*iter).m_name.GetName() == name)
+        {
+            param = &*iter;
+            break;
+        }
+    }
+
+    return param;
+}
+
 
 SOAPParameter&
 SOAPParameter::AddParameter(const char *name, const char *ns)
 {
-	SOAPParameter *ret = m_pool.Get();
-	ret->SetParent(this);
-	ret->SetName(name, ns);
-	m_dataPtr->m_array.Add(ret);
-	m_dataPtr->m_outtasync = true;
+	SOAPParameter param(SOAPQName(name, ns));
+	m_dataPtr->m_params.push_back(param);
 	SetIsStruct();
 
-	return *ret;
+	return m_dataPtr->m_params.back();
+}
+
+SOAPParameter&
+SOAPParameter::AddParameter(const SOAPString& name)
+{
+	SOAPParameter param(name);
+	m_dataPtr->m_params.push_back(param);
+	SetIsStruct();
+
+	return m_dataPtr->m_params.back();
+}
+
+SOAPParameter&
+SOAPParameter::AddParameter(const SOAPString& name, const SOAPString& ns)
+{
+	SOAPParameter param(SOAPQName(name, ns));
+	m_dataPtr->m_params.push_back(param);
+	SetIsStruct();
+
+	return m_dataPtr->m_params.back();
 }
 
 SOAPParameter&
 SOAPParameter::AddParameter(const SOAPQName& name)
 {
-	SOAPParameter *ret = m_pool.Get();
-	ret->SetParent(this);
-	ret->SetName(name);
-	m_dataPtr->m_array.Add(ret);
-	m_dataPtr->m_outtasync = true;
+	SOAPParameter param(name);
+	m_dataPtr->m_params.push_back(param);
 	SetIsStruct();
 
-	return *ret;
+	return m_dataPtr->m_params.back();
 }
 
 SOAPParameter&
 SOAPParameter::AddParameter(const SOAPParameter& p)
 {
-	SOAPParameter *ret = m_pool.Get(p);
-	ret->SetParent(this);
-	m_dataPtr->m_array.Add(ret);
-	m_dataPtr->m_outtasync = true;
+	SOAPParameter param(p);
+	m_dataPtr->m_params.push_back(param);
 	SetIsStruct();
 
-	return *ret;
-}
-
-SOAPParameter::Struct&
-SOAPParameter::GetStruct()
-{
-	CheckStructSync();
-	return m_dataPtr->m_struct;
-}
-
-const SOAPParameter::Struct&
-SOAPParameter::GetStruct() const
-{
-	CheckStructSync();
-	return m_dataPtr->m_struct;
-}
-
-void
-SOAPParameter::CheckStructSync() const
-{
-	if (m_dataPtr->m_outtasync)
-	{
-		m_dataPtr->m_struct.Clear();
-		for (Array::ConstIterator i = m_dataPtr->m_array.Begin(); i != m_dataPtr->m_array.End(); ++i)
-		{
-			m_dataPtr->m_struct[(*i)->GetName().GetName()] = (SOAPParameter *)*i;
-		}
-		m_dataPtr->m_outtasync = false;
-	}
+	return m_dataPtr->m_params.back();
 }
 
 bool
@@ -389,13 +569,17 @@ SOAPParameter::WriteSOAPPacket(XMLComposer& packet) const
 {
 	packet.StartTag(m_name);
 
-	for (Attrs::Iterator i = m_dataPtr->m_attrs.Begin(); i != m_dataPtr->m_attrs.End(); ++i)
-		packet.AddAttr(i.Key(), i.Item());
+    const Attrs &attrs = GetAttributes();
+	for (Attrs::const_iterator iter = attrs.begin(); iter != attrs.end(); ++iter)
+    {
+		packet.AddAttr((*iter).GetName(), (*iter).GetValue());
+    }
 
 	if (IsStruct())
 	{
-		for (size_t i = 0; i < GetArray().Size(); ++i)
-			GetArray()[i]->WriteSOAPPacket(packet);
+		const Params &params = GetParams();
+		for (Params::const_iterator iter = params.begin(); iter != params.end(); ++iter)
+			(*iter).WriteSOAPPacket(packet);
 	}
 	else
 	{

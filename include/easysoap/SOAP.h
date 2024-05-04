@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAP.h,v 1.8 2006/11/10 17:48:19 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAP.h#1 $
  */
 
 
@@ -28,8 +28,8 @@
 */
 #define EASYSOAP_STRING			"EasySoap++"
 #define EASYSOAP_HOMEPAGE		"http://easysoap.sourceforge.net/"
-#define EASYSOAP_VERSION_STRING	"0.8.0"
-#define EASYSOAP_VERSION		80
+#define EASYSOAP_VERSION_STRING	"0.6"
+#define EASYSOAP_VERSION		60
 
 #include <easysoap/es_conf.h>
 

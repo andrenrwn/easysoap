@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPCGIServer.cpp,v 1.11 2001/12/20 22:38:19 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPCGIServer.cpp#1 $
  */
 
 #include <easysoap/SOAPCGIServer.h>
@@ -27,9 +27,9 @@ USING_EASYSOAP_NAMESPACE
 bool
 SOAPCGIServer::Handle(const char *infile)
 {
-	SOAPCGITransport	cgi;
+    SOAPCGITransportPtr cgi(new SOAPCGITransport);
 	if (infile)
-		cgi.SetInFile(infile);
+		cgi->SetInFile(infile);
 	return m_dispatch.Handle(cgi);
 }
 

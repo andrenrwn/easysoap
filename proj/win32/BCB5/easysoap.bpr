@@ -48,7 +48,7 @@
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES)"/>
-    <LIBFILES value="..\..\..\..\Expat-1.95.2\Libs\expat.lib"/>
+    <LIBFILES value="..\..\..\..\Expat-2.2.0\Libs\expat.lib"/>
     <LIBRARIES value=""/>
     <SPARELIBS value=""/>
     <PACKAGES value="VCL50.bpi VCLX50.bpi dclocx50.bpi bcbsmp50.bpi QRPT50.bpi VCLDB50.bpi 
@@ -65,14 +65,14 @@
     <USERDEFINES value="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;EASYSOAP_DLL;_DEBUG"/>
     <SYSDEFINES value="_NO_VCL;_ASSERTE;NO_STRICT;_RTLDLL"/>
     <MAINSOURCE value="easysoap.bpf"/>
-    <INCLUDEPATH value="..\..\..\include;..\..\..\..\Expat-1.95.2\Source\Lib;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include"/>
+    <INCLUDEPATH value="..\..\..\include;..\..\..\..\Expat-2.2.0\Source\Lib;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include"/>
     <LIBPATH value="..\..\..\src;..\..\..\src\abyss\src;$(BCB)\lib"/>
     <WARNINGS value="-w-8026 -w-8027 -w-par"/>
   </MACROS>
   <OPTIONS>
     <IDLCFLAGS value="-I$(BCB)\include"/>
     <CFLAG1 value="-WD -Od -w -X- -r- -a8 -5 -b -k -y -v -vi- -q -tWR -tWM -I../include 
-      -I../../expat-1.95.2/source/lib -Iabyss/src -c -tWD"/>
+      -I../../expat-2.2.0/source/lib -Iabyss/src -c -tWD"/>
     <PFLAGS value="-N2..\..\..\win32\Release\obj -N0..\..\..\win32\Release\obj -$YD -$W -$O-"/>
     <RFLAGS value="/l 0x409 /d &quot;NDEBUG&quot; /i$(BCB)\include;$(BCB)\include\mfc"/>
     <AFLAGS value="/mx /w2 /zi"/>
@@ -113,9 +113,9 @@ Comments=
 
 [HistoryLists\hlIncludePath]
 Count=7
-Item0=..\..\..\include;..\..\..\..\Expat-1.95.2\Source\Lib;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
-Item1=..\..\..\include;..\..\..\..\Expat-1.95.2\Source;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
-Item2=..\..\..\include;C:\src\Expat-1.95.2\Source;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
+Item0=..\..\..\include;..\..\..\..\Expat-2.2.0\Source\Lib;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
+Item1=..\..\..\include;..\..\..\..\Expat-2.2.0\Source;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
+Item2=..\..\..\include;C:\src\Expat-2.2.0\Source;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
 Item3=..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include;..\..\..\include
 Item4=..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
 Item5=abyss\src;$(BCB)\include

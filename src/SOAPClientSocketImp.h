@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPClientSocketImp.h,v 1.10 2002/06/07 19:31:13 kingmob Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPClientSocketImp.h#1 $
  */
 
 
@@ -32,6 +32,7 @@ class SOAPClientSocketImp : public SOAPSocketInterface
 protected:
 //	friend class SOAPSecureSocketImp;
 	unsigned int	m_socket;
+	bool	m_isNonBlocking;
 
 public:
 	SOAPClientSocketImp();
@@ -41,11 +42,16 @@ public:
 	void			Wait(int sec, int usec);
 	virtual bool WaitRead(int sec = -1, int usec = 0);
 	virtual bool WaitWrite(int sec = -1, int usec = 0);
+	virtual bool WaitReadWrite(int sec = -1, int usec = 0);
 	virtual bool IsOpen();
 	virtual void Close();
 	virtual bool Connect(const char *host, unsigned int port);
 	virtual size_t Read(char *buffer, size_t len);
 	virtual size_t Write(const char *buffer, size_t len);
+	virtual void SetNonBlocking() { m_isNonBlocking = true; };
+	virtual void  SetTimeout(size_t timeout);
+ private:
+	void SetTimeoutSockOpts();
 
 };
 

@@ -16,16 +16,18 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBase64.h,v 1.3 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPBase64.h#1 $
  */
 
 
 #if !defined(AFX_SOAPBASE64_H__8831A358_2EA1_11D5_B3F3_000000000000__INCLUDED_)
 #define AFX_SOAPBASE64_H__8831A358_2EA1_11D5_B3F3_000000000000__INCLUDED_
 
+#if defined(_MSC_VER)
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
+#endif // defined(_MSC_VER)
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -44,6 +46,8 @@ public:
 	static size_t EstimateSize(const SOAPString& str);
 	static void Encode(const char *bytes, size_t byteslen, SOAPString& str);
 	static void Decode(const SOAPString& str, char *bytes, size_t& byteslen);
+	static void Encode(const std::vector<char>& bytes, SOAPString& str);
+	static void Decode(const SOAPString& str, std::vector<char>& bytes);
 
 protected:
 	SOAPBase64Base() {}
@@ -64,6 +68,8 @@ public:
 	static size_t EstimateSize(const SOAPString& str);
 	static void Encode(const char *bytes, size_t byteslen, SOAPString& str);
 	static void Decode(const SOAPString& str, char *bytes, size_t& byteslen);
+	static void Encode(const std::vector<char>& bytes, SOAPString& str);
+	static void Decode(const SOAPString& str, std::vector<char>& bytes);
 
 protected:
 	SOAPHexBase() {}

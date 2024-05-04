@@ -1,4 +1,5 @@
-SUBDIRS = proj include src tests validator simpleserver google
+#SUBDIRS = include src proj tests validator simpleserver google
+SUBDIRS = include src
 EXTRA_DIST = \
 	README \
 	README.borland \
@@ -9,11 +10,6 @@ EXTRA_DIST = \
 	conftools/missing \
 	conftools/mkinstalldirs \
 	conftools/ltmain.sh
-
-tests: src
-validator: src
-simpleserver: src
-google: src
 
 AM_CFLAGS=-Wall
 AM_CXXFLAGS=-Wall

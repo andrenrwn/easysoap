@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPString.h,v 1.6 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPString.h#1 $
  */
 
 
@@ -33,6 +33,9 @@
 #endif
 #endif
 
+
+#include <string>
+
 #include <easysoap/SOAP.h>
 #include <easysoap/SOAPUtil.h>
 
@@ -44,67 +47,55 @@ BEGIN_EASYSOAP_NAMESPACE
 class EASYSOAP_EXPORT SOAPString
 {
 private:
-	char	*m_str;
-	size_t	m_alloc;
+	std::string m_str;
+    static const std::string &empty_string(void);
+    static const std::string &null_string(void);
 
-	void Assign(const char* str)
-	{
-		if (str)
-		{
-			if (m_str)
-			{
-				// try to copy in place
-				size_t rem = m_alloc;
-				const char *work = str;
-				char *dest = m_str;
-				while (rem--)
-				{
-					if ((*dest++ = *work++) == 0)
-						return;
-				}
-				// we didn't have enough room to copy..
-				sp_free(m_str);
-			}
+    bool isNull(void) const { return m_str == null_string(); }
+    void unnullify(void)
+    {
+        if (isNull()) {
+            m_str = empty_string();
+        }
+    }
+    void nullify(void)
+    {
+        if (!isNull()) {
+            m_str = null_string();
+        }
+    }
 
-			// we need to alloc some space
-			size_t req = sp_strlen(str) + 1;
-			Resize(req);
-			sp_strcpy(m_str, str);
-		}
-		else
-			sp_free(m_str);
-	}
-
+	void Assign(const char* str);
+	void Assign(const SOAPString& str);
+	void Assign(const std::string& str);
+    
 public:
 	// Default constructor
-	SOAPString(const char *str = 0) : m_str(0), m_alloc(32)
-	{
-		Assign(str);
-	}
-
-	// Copy constructor
-	SOAPString(const SOAPString& str) : m_str(0), m_alloc(32)
-	{
-		Assign(str.m_str);
-	}
+	SOAPString(const char *str = NULL);
+	SOAPString(const char *str, int len);
+	SOAPString(const SOAPString& str);
+	SOAPString(const std::string& str);
 
 #ifdef HAVE_WCHART
-	SOAPString(const wchar_t *str) : m_str(0), m_alloc(32)
+	SOAPString(const wchar_t *str)
 	{
 		Assign(str);
 	}
 #endif // HAVE_WCHART
 
 	// Destructor
-	~SOAPString()
-	{
-		sp_free(m_str);
-	}
+	~SOAPString();
 
 	// Assignment operator
 	SOAPString& operator=(const SOAPString& str)
 	{
-		Assign(str.m_str);
+		Assign(str);
+		return *this;
+	}
+
+	SOAPString& operator=(const std::string& str)
+	{
+		Assign(str);
 		return *this;
 	}
 
@@ -113,67 +104,45 @@ public:
 		Assign(str);
 		return *this;
 	}
-
+	
 	SOAPString& Append(const char *str)
 	{
 		return Append(str, sp_strlen(str));
 	}
 
-	SOAPString& Append(const char *str, size_t len)
-	{
-		size_t tlen = sp_strlen(m_str);
-		size_t need = tlen + len + 1;
-		Resize(need);
-		sp_strncpy(m_str + tlen, str, len);
-		m_str[need - 1] = 0;
-		return *this;
-	}
+	SOAPString& Append(const char *str, size_t len);
 
 	SOAPString& operator+=(const char *str)
 	{
 		return Append(str);
 	}
 
-	void Resize(size_t size)
-	{
-		if (!m_str || m_alloc < size)
-		{
-			while (m_alloc < size)
-				m_alloc *= 2;
-			char *newstr = sp_alloc<char>(m_alloc);
-			if (m_str)
-			{
-				sp_strcpy(newstr, m_str);
-				sp_free(m_str);
-			}
-			m_str = newstr;
-		}
-	}
-
-	void Empty()
-	{
-		if (m_str)
-			*m_str = 0;
-	}
+	void Reserve(size_t size);
+	void Empty(void);
+    void Clear(void);
 
 	const char *Str() const
 	{
-		return m_str;
+		return isNull() ? NULL : m_str.c_str();
 	}
 
-	char *Str()
-	{
-		return m_str;
-	}
+    // This function returns a C++ string and is 
+    // safer than the Str() alternative, since 
+    // the other version can possibly return a 
+    // NULL pointer.
+    const std::string& cppStr() const
+    {
+        return m_str;
+    }
 
 	bool operator!() const
 	{
-		return m_str == 0;
+		return isNull();
 	}
 
 	operator bool() const
 	{
-		return m_str != 0;
+		return !isNull();
 	}
 
 	operator const char *() const
@@ -181,19 +150,26 @@ public:
 		return Str();
 	}
 
+    operator const std::string &() const
+    {
+        return isNull() ? empty_string() : m_str;
+    }
+
 	size_t Length() const
 	{
-		return m_str ? sp_strlen(m_str) : 0;
+        return isNull() ? 0 : m_str.size();
 	}
+
+	void Length(int length);
 
 	bool IsEmpty() const
 	{
-		return m_str == 0 || *m_str == 0;
+		return isNull() || m_str.empty();
 	}
 
 	int Compare(const char *str) const
 	{
-		return sp_strcmp(m_str, str);
+		return sp_strcmp(Str(), str);
 	}
 
 	bool operator==(const SOAPString& str) const

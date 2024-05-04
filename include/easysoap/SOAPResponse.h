@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPResponse.h,v 1.4 2004/06/02 06:33:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPResponse.h#1 $
  */
 
 
@@ -25,6 +25,7 @@
 
 #include <easysoap/SOAP.h>
 #include <easysoap/SOAPEnvelope.h>
+#include <boost/shared_ptr.hpp>
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -46,7 +47,16 @@ public:
 
 	const SOAPParameter& GetReturnValue(int i = 0) const
 	{
-		return GetBody().GetMethod().GetParameter(i);
+        const SOAPParameter::Params &values = GetBody().GetMethod().GetParams();
+        for (SOAPParameter::Params::const_iterator iter = values.begin();
+               iter != values.end(); ++iter)
+        {
+           if (i-- == 0)
+           { 
+		        return *iter;
+           }
+        }
+        throw SOAPException("Index out of range getting parameter");
 	}
 
 	const SOAPParameter& GetReturnValue(const char *name) const
@@ -55,9 +65,8 @@ public:
 	}
 
 private:
-	SOAPResponse(const SOAPResponse&);
-	SOAPResponse& operator=(const SOAPResponse&);
 };
+typedef boost::shared_ptr<SOAPResponse> SOAPResponsePtr;
 
 END_EASYSOAP_NAMESPACE
 

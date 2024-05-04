@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPonHTTP.h,v 1.19 2004/06/02 09:19:25 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPonHTTP.h#1 $
  */
 
 /* Modified 20-aug-2001 Tor Molnes ConsultIT AS
@@ -55,8 +55,7 @@ private:
 	bool		m_keepAlive;
 	bool		m_chunked;
 	SOAPSSLContext	*m_ctx;
-	SOAPSocketInterface * m_sslsocket;
-	void		*m_cbdata;
+        void            *m_cbdata;
 
 	int		GetReply();
 	size_t	GetChunkLength();
@@ -64,7 +63,6 @@ private:
 	void	WriteHostHeader(const SOAPUrl&);
 	void	FlushInput();
 	void	StartVerb(const char *verb, const char *path);
-	void	AddAuthorization(const char *type, const SOAPUrl& point);
 	size_t  ReadChunk(char *buffer, size_t len);
 	size_t  ReadBytes(char *buffer, size_t len);
 
@@ -76,7 +74,6 @@ public:
 		, m_keepAlive(true)
 		, m_chunked(false)
 		, m_ctx(0)
-		, m_sslsocket(0)
 		, m_cbdata(0)
 	{}
 
@@ -87,7 +84,6 @@ public:
 		, m_keepAlive(true)
 		, m_chunked(false)
 		, m_ctx(0)
-		, m_sslsocket(0)
 		, m_cbdata(0)
 
 	{
@@ -101,30 +97,25 @@ public:
 		, m_keepAlive(true)
 		, m_chunked(false)
 		, m_ctx(0)
-		, m_sslsocket(0)
 		, m_cbdata(0)
 
 	{
 		ConnectTo(endpoint, proxy);
 	}
 
-	~SOAPHTTPProtocol();
-
-	void	SetKeepAlive(bool keepAlive = true)
+	~SOAPHTTPProtocol()
 	{
+	}
+
+	void	SetKeepAlive(bool keepAlive = true)	{
 		m_keepAlive = keepAlive;
 	}
-
-	void 	SetContext(SOAPSSLContext& context)
-	{ 
+	void 	SetContext(SOAPSSLContext& context) { 
 		m_ctx = &context; 
 	}
-
-	void SetVerifyCBData(void* cbdata)
-	{
-		m_cbdata = cbdata;
-	}
-
+        void SetVerifyCBData(void* cbdata) {
+                m_cbdata = cbdata;
+        }
 	void	ConnectTo(const SOAPUrl& endpoint);
 	void	ConnectTo(const SOAPUrl& endpoint, const SOAPUrl& proxy);
 	int		Get(const char *path);
@@ -133,9 +124,8 @@ public:
 	void	WriteHeader(const char *header, const char *value);
 	void	WriteHeader(const char *header, int value);
 
-	const char *GetCharset() const {return m_charset;}
-	const char *GetContentType() const {return m_contentType;}
-	const char *GetContentEncoding() const;
+	const SOAPString &GetCharset() const {return m_charset;}
+	const SOAPString &GetContentType() const {return m_contentType;}
 	const char *GetHeader(const char *header) const;
 	int		GetContentLength() const;
 	bool	IsChunked() const {return m_chunked;}
@@ -159,9 +149,11 @@ private:
 
 	SOAPHTTPProtocol	m_http;
 	SOAPString			m_userAgent;
+	SOAPString			m_customHeader;
+	SOAPString			m_customHeaderVal;
 	SOAPUrl				m_endpoint;
 	SOAPSSLContext 		*m_ctx;
-	void				*m_cbdata;
+        void                    *m_cbdata;
 
 public:
 	SOAPonHTTP(SOAPSSLContext * ctx = 0) : m_ctx(ctx), m_cbdata(0) {}
@@ -183,8 +175,9 @@ public:
 	void ConnectTo(const SOAPUrl& endpoint);
 	void ConnectTo(const SOAPUrl& endpoint, const SOAPUrl& proxy);
 
-	void SetUserAgent(const char *userAgent);
-	void SetTimeout(size_t secs) {m_http.SetTimeout(secs);}
+	void SetUserAgent(const char *userAgent)	{m_userAgent = userAgent;}
+	void SetCustomHeader(const char *header, const char* value)	{m_customHeader = header; m_customHeaderVal = value;}
+	void SetTimeout(size_t secs);
 	void SetKeepAlive(bool keepAlive = true)	{m_http.SetKeepAlive(keepAlive);}
 	void SetContext(SOAPSSLContext& context) 
 	{
@@ -201,11 +194,13 @@ public:
                 m_cbdata = cbdata;
         }
 
+	// Handle close.
+	virtual void Close() { m_http.Close(); }
+	
 	//
 	//  Return charset if we know it
-	virtual const char *GetCharset() const;
-	virtual const char *GetContentType() const;
-	virtual const char *GetContentEncoding() const;
+	virtual const SOAPString &GetCharset() const;
+	virtual const SOAPString &GetContentType() const;
 
 	// read the payload into the buffer.
 	// can be called multiple times.
@@ -215,6 +210,7 @@ public:
 	// send the payload.  can only be called ONCE per
 	// payload.
 	virtual size_t Write(const SOAPMethod& method, const char *payload, size_t payloadsize);
+	virtual size_t WriteHeaders(long content_length = 0);
 };
 
 END_EASYSOAP_NAMESPACE

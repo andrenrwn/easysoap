@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: XMLComposer.h,v 1.3 2006/11/09 07:24:38 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/XMLComposer.h#1 $
  */
 
 
@@ -25,8 +25,48 @@
 
 #include <easysoap/SOAPHashMap.h>
 #include <easysoap/SOAPString.h>
+#include <boost/shared_ptr.hpp>
 
 BEGIN_EASYSOAP_NAMESPACE
+
+class EASYSOAP_EXPORT XMLComposerOutput
+{
+    public:
+        virtual ~XMLComposerOutput() {}
+        virtual void Write(char c) = 0;
+        virtual void Write(const char* s) = 0; 
+};
+
+class EASYSOAP_EXPORT XMLComposerBuffer : public XMLComposerOutput
+{
+    public:
+        XMLComposerBuffer(void);
+        virtual ~XMLComposerBuffer();
+        
+        void Write(char c);
+        void Write(const char* s);
+
+        const char* GetBytes();
+        unsigned int GetLength();
+
+        void Reset(void);
+
+    private:
+        void Resize(void);
+
+    private:
+        char			*m_buffer;
+        char			*m_buffptr;
+        const char		*m_buffend;
+        unsigned int	m_buffsize;
+};
+
+class EASYSOAP_EXPORT XMLComposerStdout : public XMLComposerOutput
+{
+    public:
+        void Write(char c);
+        void Write(const char* s); 
+};
 
 /**
 *
@@ -34,39 +74,47 @@ BEGIN_EASYSOAP_NAMESPACE
 class EASYSOAP_EXPORT XMLComposer  
 {
 public:
-	XMLComposer();
+	XMLComposer(XMLComposerOutput* output = NULL);
 	virtual ~XMLComposer();
 	void Reset(bool addDecl = false);
 
-	const char * GetBytes();
+	const char* GetBytes();
 	unsigned int GetLength();
+    const char* DetachBytes(unsigned int &length);
 
 	void StartPI(const char *name);
 	void EndPI();
 
 	void StartTag(const char *tag);
+	void StartTag(const SOAPString &tag);
 	void StartTag(const SOAPQName& tag, const char *prefix = 0);
+	void StartTag(const SOAPQName& tag, const SOAPString& prefix);
 
 	void AddAttr(const char *attr, const char *value);
 	void AddAttr(const SOAPQName& attr, const char *value);
+	void AddAttr(const SOAPQName& attr, const SOAPString &value);
 	void AddAttr(const SOAPQName& attr, const SOAPQName& value);
 
 	void AddXMLNS(const char *prefix, const char *ns);
+	void AddXMLNS(const SOAPString& prefix, const SOAPString& ns);
 
 	void EndTag(const char *tag);
+	void EndTag(const SOAPString& tag);
 	void EndTag(const SOAPQName& tag);
 
 	void WriteValue(const char *val);
 
 	static void SetAddWhiteSpace(bool ws = true);
+	static void SetBufferResults(bool use_buffer = true);
+	static bool GetBufferResults();
 
 private:
 	XMLComposer(const XMLComposer&);
 	XMLComposer& operator=(const XMLComposer&);
 
-	const char *GetSymbol(char *buff, size_t buffsize, const char *prefix);
+	void GetSymbol(SOAPString& symbol, const SOAPString& prefix);
 	void EndStart();
-	void Resize();
+	void Resize(void);
 	void Write(const char *str);
 	void WriteEscaped(const char *str);
 	void Write(const char *str, unsigned int len);
@@ -82,21 +130,22 @@ private:
 		unsigned int	level;
 	};
 
-	typedef SOAPHashMap<SOAPString, NamespaceInfo> NamespaceMap;
-	typedef SOAPArray<NamespaceInfo> NamespaceArray;
+	typedef std::map<SOAPString, NamespaceInfo> NamespaceMap;
+	typedef std::list<NamespaceInfo *> NamespaceArray;
 
 	bool			m_instart;
-	char			*m_buffer;
-	char			*m_buffptr;
-	const char		*m_buffend;
-	unsigned int	m_buffsize;
+    XMLComposerOutput& m_output;
+    XMLComposerBuffer m_buffer;
+    XMLComposerStdout m_stdout;
 	unsigned int	m_gensym;
 	unsigned int	m_level;
 	NamespaceMap	m_nsmap;
 	NamespaceArray	m_nsarray;
 
 	static bool		g_makePretty;
+	static bool		g_bufferResults;
 };
+typedef boost::shared_ptr<XMLComposer> XMLComposerPtr;
 
 END_EASYSOAP_NAMESPACE
 

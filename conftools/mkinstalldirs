@@ -4,7 +4,7 @@
 # Created: 1993-05-16
 # Public domain
 
-# $Id: mkinstalldirs,v 1.13 1999/01/05 03:18:55 bje Exp $
+# $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/conftools/mkinstalldirs#1 $
 
 errstatus=0
 

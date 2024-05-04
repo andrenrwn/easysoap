@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPTransport.h,v 1.6 2004/06/02 08:01:38 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPTransport.h#1 $
  */
 
 
@@ -24,6 +24,7 @@
 #define AFX_SOAPTRANSPORT_H__7D357522_E8B1_45A2_8CE1_A472A7D58C13__INCLUDED_
 
 #include <easysoap/SOAP.h>
+#include <boost/shared_ptr.hpp>
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -45,15 +46,11 @@ public:
 	virtual ~SOAPTransport() {}
 	//
 	//  Return charset if known otherwise null
-	virtual const char *GetCharset() const = 0;
+	virtual const SOAPString &GetCharset() const = 0;
 
 	//
 	//  Return charset if known otherwise null
-	virtual const char *GetContentType() const = 0;
-
-	//
-	//  Return content encoding if known otherwise null
-	virtual const char *GetContentEncoding() const = 0;
+	virtual const SOAPString &GetContentType() const = 0;
 
 	// read the payload into the buffer.
 	// can be called multiple times.
@@ -63,6 +60,11 @@ public:
 	// send the payload.  can only be called ONCE per
 	// payload. 
 	virtual size_t Write(const SOAPMethod& method, const char *payload, size_t payloadsize) = 0;
+
+	virtual size_t WriteHeaders(long content_length = 0) = 0;
+
+	// Close this transport.
+	virtual void Close() {}
 };
 
 /**
@@ -80,10 +82,11 @@ protected:
 public:
 	virtual ~SOAPServerTransport() {}
 
-	virtual const char *GetSoapAction() const = 0;
+	virtual const SOAPString& GetSoapAction() const = 0;
 
 	virtual void SetError() = 0;
 };
+typedef boost::shared_ptr<SOAPServerTransport> SOAPServerTransportPtr;
 
 END_EASYSOAP_NAMESPACE
 

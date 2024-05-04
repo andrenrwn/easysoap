@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: es_conf.h,v 1.7 2005/09/24 07:24:24 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/es_conf.h#1 $
  */
 
 #ifndef __ES_CONF_H_
@@ -34,7 +34,7 @@
 // Some compilers on the other hand don't like it one
 // bit ....
 */
-#ifdef HAVE_TYPENAME
+#ifdef HAVE_TEMPLATE_KEYWORD_QUALIFIER
 #define TYPENAME(T) typename T
 #else
 #define TYPENAME(T) T

@@ -56,7 +56,7 @@ OBJFILES = ..\..\..\win32\Release\obj\isapi.obj \
 RESFILES = 
 MAINSOURCE = easysoap.bpf
 RESDEPEN = $(RESFILES)
-LIBFILES = ..\..\..\..\Expat-1.95.2\Libs\expat.lib
+LIBFILES = ..\..\..\..\Expat-2.2.0\Libs\expat.lib
 IDLFILES = 
 IDLGENFILES = 
 LIBRARIES = 
@@ -75,12 +75,12 @@ DEBUGLIBPATH = $(BCB)\lib\debug
 RELEASELIBPATH = $(BCB)\lib\release
 USERDEFINES = WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;EASYSOAP_DLL;_DEBUG
 SYSDEFINES = _NO_VCL;_ASSERTE;NO_STRICT;_RTLDLL
-INCLUDEPATH = ..\..\..\include;..\..\..\..\Expat-1.95.2\Source\Lib;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
+INCLUDEPATH = ..\..\..\include;..\..\..\..\Expat-2.2.0\Source\Lib;..\..\..\src;..\..\..\src\abyss\src;$(BCB)\include
 LIBPATH = ..\..\..\src;..\..\..\src\abyss\src;$(BCB)\lib
 WARNINGS= -w-8026 -w-8027 -w-par
 # ---------------------------------------------------------------------------
 CFLAG1 = -WD -Od -w -X- -r- -a8 -5 -b -k -y -v -vi- -q -tWR -tWM -I../include \
-    -I../../expat-1.95.2/source/lib -Iabyss/src -c -tWD
+    -I../../expat-2.2.0/source/lib -Iabyss/src -c -tWD
 IDLCFLAGS = -I$(BCB)\include
 PFLAGS = -N2..\..\..\win32\Release\obj -N0..\..\..\win32\Release\obj -$YD -$W -$O-
 RFLAGS = /l 0x409 /d "NDEBUG" /i$(BCB)\include;$(BCB)\include\mfc

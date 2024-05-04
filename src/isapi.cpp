@@ -1,7 +1,7 @@
 //
 // isapi.c : Defines the entry point for the DLL application.
 //
-// $Id: isapi.cpp,v 1.13 2004/06/02 06:33:05 dcrowley Exp $
+// $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/isapi.cpp#1 $
 //
 // This file implements the standard DLL entry points for an
 // ISAPI module.  This is free code.  It was taken and derived
@@ -128,9 +128,9 @@ WriteErrorMessage(EXTENSION_CONTROL_BLOCK *pECB, int error, const char *szBuffer
 	pECB->WriteClient(pECB->ConnID, (void *)szBuffer, &dwBufLen, 0);
 }
 
-BOOL APIENTRY DllMain( HANDLE /*hModule*/,
-                       DWORD  /*ul_reason_for_call*/,
-                       LPVOID /*lpReserved*/
+BOOL APIENTRY DllMain( HANDLE hModule, 
+                       DWORD  ul_reason_for_call, 
+                       LPVOID lpReserved
 					 )
 {
     return TRUE;
@@ -219,7 +219,7 @@ HttpExtensionProc( EXTENSION_CONTROL_BLOCK *pECB )
 // for them, clean up our IoPort and then exit.
 //
 BOOL WINAPI
-TerminateExtension( DWORD /*dwFlags*/ )
+TerminateExtension( DWORD dwFlags )
 {
 	long n;
 	for (n = 0; n < numWorkerThreads; ++n)

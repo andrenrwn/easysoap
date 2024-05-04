@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPDispatchHandler.h,v 1.6 2003/06/03 17:34:37 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPDispatchHandler.h#1 $
  */
 
 
@@ -35,7 +35,7 @@ class EASYSOAP_EXPORT SOAPDispatchHandlerInterface
 {
 public:
 	virtual ~SOAPDispatchHandlerInterface() {}
-	virtual bool ExecuteMethod(const SOAPEnvelope& request, SOAPMethod& response) = 0;
+	virtual bool ExecuteMethod(SOAPEnvelope& request, SOAPMethod& response) = 0;
 };
 
 /**
@@ -45,7 +45,7 @@ template <typename T>
 class SOAPDispatchHandler : public SOAPDispatchHandlerInterface
 {
 private:
-	typedef void (T::*HandlerFunction)(const SOAPMethod& request, SOAPMethod& response);
+	typedef void (T::*HandlerFunction)(SOAPMethod& request, SOAPMethod& response);
 	typedef SOAPHashMap<SOAPQName, HandlerFunction> DispatchMap;
 
 	SOAPDispatchHandler(const SOAPDispatchHandler&);
@@ -58,7 +58,7 @@ protected:
 	{
 	}
 
-	bool ExecuteMethod(const SOAPEnvelope& request, SOAPMethod& response)
+	bool ExecuteMethod(SOAPEnvelope& request, SOAPMethod& response)
 	{
 		const SOAPMethod& method = request.GetBody().GetMethod();
 		TYPENAME(DispatchMap::Iterator) i = m_dispatchMap.Find(method.GetName());
@@ -81,6 +81,55 @@ protected:
 	void DispatchMethod(const SOAPQName& name, HandlerFunction func)
 	{
 		m_dispatchMap[name] = func;
+	}
+};
+
+template <typename T, typename C>
+class SOAPDispatchHandlerEx : public SOAPDispatchHandlerInterface
+{
+private:
+	typedef void (T::*HandlerFunctionEx)(SOAPMethod& request, SOAPMethod& response, C context);
+	typedef struct {
+		HandlerFunctionEx handler;
+		C context;
+	} DispatchMapEntry;
+	typedef SOAPHashMap<SOAPQName, DispatchMapEntry> DispatchMap;
+
+	SOAPDispatchHandlerEx(const SOAPDispatchHandlerEx&);
+	SOAPDispatchHandlerEx& operator=(const SOAPDispatchHandlerEx&);
+
+	DispatchMap	m_dispatchMap;
+
+protected:
+	SOAPDispatchHandlerEx()
+	{
+	}
+
+	bool ExecuteMethod(SOAPEnvelope& request, SOAPMethod& response)
+	{
+		SOAPMethod& method = request.GetBody().GetMethod();
+		TYPENAME(DispatchMap::Iterator) i = m_dispatchMap.Find(method.GetName());
+		if (i)
+		{
+			T *target= GetTarget(request);
+			(target->*(i->handler))(method, response, i->context);
+			return true;
+		}
+		return false;
+	}
+
+	virtual T* GetTarget(const SOAPEnvelope& request) = 0;
+
+	void DispatchMethod(const char *name, const char *ns, HandlerFunctionEx func, C context)
+	{
+		DispatchMapEntry entry = { func, context };
+		m_dispatchMap[SOAPQName(name, ns)] = entry;
+	}
+
+	void DispatchMethod(const SOAPQName& name, HandlerFunctionEx func, C context)
+	{
+		DispatchMapEntry entry = { func, context };
+		m_dispatchMap[name] = entry;
 	}
 };
 

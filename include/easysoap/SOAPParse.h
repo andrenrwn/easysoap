@@ -16,19 +16,20 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParse.h,v 1.5 2003/06/03 17:32:19 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPParse.h#1 $
  */
 
 
 #if !defined(AFX_SOAPPARSE_H__751545FF_EF84_42BC_9622_A6CE624F1F14__INCLUDED_)
 #define AFX_SOAPPARSE_H__751545FF_EF84_42BC_9622_A6CE624F1F14__INCLUDED_
 
-
+#include <list>
+#include <map>
+#include <stack>
 #include <easysoap/SOAP.h>
 #include <easysoap/XMLParser.h>
 
 #include <easysoap/SOAPTransport.h>
-#include <easysoap/SOAPStack.h>
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -46,17 +47,21 @@ public:
 	virtual ~SOAPParser();
 
 	SOAPEnvelope& Parse(SOAPEnvelope& env, SOAPTransport& trans);
+	SOAPEnvelope& Parse(SOAPEnvelope& env, const char *message);
 
 	// Used by subscribers/handlers
 
 	// Resolves a namespace like "xsi" into a fully qualified name
 	// "http://www.w3.org/1999/XMLSchema-instance"
-	const char *ExpandNamespace(const char *name, const char *nsend) const;
+	const SOAPString& ExpandNamespace(const char *name, const char *nsend) const;
 
+    // Keep common strings in a cache
+    const SOAPString& DeclareString(const char* string);   
+    const SOAPString& DeclareString(const SOAPString& string);   
 	//
 	// Set the SOAPParameter which defines the
 	// give id attribute.
-	void SetIdParam(const char *name, SOAPParameter *);
+	void SetIdParam(const SOAPString& name, SOAPParameter *);
 
 	void SetHRefParam(SOAPParameter *);
 
@@ -70,10 +75,11 @@ protected:
 
 private:
 
-	typedef SOAPStack<SOAPParseEventHandler *>	HandlerStack;
-	typedef SOAPHashMap<SOAPString, SOAPString> NamespaceMap;
-	typedef SOAPHashMap<SOAPString, SOAPParameter*> IdMap;
-	typedef SOAPArray<SOAPParameter *>				HRefArray;
+	typedef std::stack<SOAPParseEventHandler *>	HandlerStack;
+	typedef std::map<SOAPString, SOAPString> NamespaceMap;
+	typedef std::map<SOAPString, SOAPParameter*> IdMap;
+	typedef std::map<SOAPString, SOAPString> StringMap;
+	typedef std::list<SOAPParameter *> HRefArray;
 
 	void HandleHRefs();
 
@@ -83,6 +89,7 @@ private:
 	SOAPEnvelopeHandler		*m_handler;
 	NamespaceMap			m_nsmap;
 	IdMap					m_idmap;
+    StringMap               m_stringmap;
 	HRefArray				m_hrefs;
 };
 

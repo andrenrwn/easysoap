@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBase64.cpp,v 1.14 2004/06/02 07:59:24 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPBase64.cpp#1 $
  */
 
 #ifdef _MSC_VER
@@ -40,12 +40,12 @@ initializeBase64Tables()
 	// initialize the encoding table
 	for (i = 0; i < 26; ++i)
 	{
-		base64encode[i] = char('A' + i);
-		base64encode[26 + i] = char('a' + i);
+		base64encode[i] = 'A' + i;
+		base64encode[26 + i] = 'a' + i;
 	}
 
 	for (i = 0; i < 10; ++i)
-		base64encode[52 + i] = char('0' + i);
+		base64encode[52 + i] = '0' + i;
 
 	base64encode[62] = '+';
 	base64encode[63] = '/';
@@ -53,7 +53,7 @@ initializeBase64Tables()
 
 	// initialize the decoding table
 	for (i = 0; i < 256; ++i)
-		base64decode[i] = 0x80;
+		base64decode[i] = (char)0x80;
 	for (i = 'A'; i <= 'Z'; ++i)
 		base64decode[i] = i - 'A';
 	for (i = 'a'; i <= 'z'; ++i)
@@ -61,14 +61,14 @@ initializeBase64Tables()
 	for (i = '0'; i <= '9'; ++i)
 		base64decode[i] = 52 + i - '0';
 
-	base64decode[(int)'+'] = 62;
-	base64decode[(int)'/'] = 63;
+	base64decode['+'] = 62;
+	base64decode['/'] = 63;
 	base64decode[(int)base64pad] = 0;
 
 	return 1;
 }
 
-static int initialized = initializeBase64Tables();
+static __attribute__((unused)) int initialized = initializeBase64Tables();
 
 
 inline int
@@ -82,7 +82,7 @@ nextChar(const char*& str)
 
 	// only increment pointer if
 	// we're not at the end of string
-	if ((c = *str) != 0)
+	if ((c = *str))
 		++str;
 
 	return c;
@@ -102,6 +102,11 @@ SOAPBase64Base::Decode(const SOAPString& strx, char *bytes, size_t& byteslen)
 
 	bool done = false;
 	const char *str = strx;
+
+    if (str == NULL) {
+        byteslen = 0;
+        return;
+    }
 
 	while (!done)
 	{
@@ -133,9 +138,9 @@ SOAPBase64Base::Decode(const SOAPString& strx, char *bytes, size_t& byteslen)
 			in[3] == 0x80)
 			throw SOAPException("Invalid character in base64 string.");
 
-		out[0] = char((in[0] << 2) | (in[1] >> 4));
-		out[1] = char((in[1] << 4) | (in[2] >> 2));
-		out[2] = char((in[2] << 6) |  in[3]);
+		out[0] = (in[0] << 2) | (in[1] >> 4);
+		out[1] = (in[1] << 4) | (in[2] >> 2);
+		out[2] = (in[2] << 6) |  in[3];
 
 		if (outlen + valid > byteslen)
 			throw SOAPException("Input array for base64 decoding not big enough.");
@@ -167,40 +172,147 @@ SOAPBase64Base::Decode(const SOAPString& strx, char *bytes, size_t& byteslen)
 void
 SOAPBase64Base::Encode(const char *bytes, size_t size, SOAPString& str)
 {
+	char buf[4];
 	size_t num64chars = (size / 3) * 4 + 4;
-	str.Resize(num64chars + 4);
-
-	char *out = str.Str();
 	const unsigned char *in = (const unsigned char *)bytes;
+
+	str.Empty();
+	str.Reserve(num64chars + 4);
 
 	while (size >= 3)
 	{
-		*out++ = base64encode[in[0] >> 2];
-		*out++ = base64encode[((in[0] & 3) << 4) | (in[1] >> 4)];
-		*out++ = base64encode[((in[1] & 0xF) << 2) | (in[2] >> 6)];
-		*out++ = base64encode[in[2] & 0x3F];
+		buf[0] = base64encode[in[0] >> 2];
+		buf[1] = base64encode[((in[0] & 3) << 4) | (in[1] >> 4)];
+		buf[2] = base64encode[((in[1] & 0xF) << 2) | (in[2] >> 6)];
+		buf[3] = base64encode[in[2] & 0x3F];
+		str.Append(buf, 4);
 		size -= 3;
 		in += 3;
 	}
 
 	if (size == 2)
 	{
-		*out++ = base64encode[in[0] >> 2];
-		*out++ = base64encode[((in[0] & 3) << 4) | (in[1] >> 4)];
-		*out++ = base64encode[(in[1] & 0xF) << 2];
-		*out++ = base64pad;
+		buf[0] = base64encode[in[0] >> 2];
+		buf[1] = base64encode[((in[0] & 3) << 4) | (in[1] >> 4)];
+		buf[2] = base64encode[(in[1] & 0xF) << 2];
+		buf[3] = base64pad;
+		str.Append(buf, 4);
 	}
 	else if (size == 1)
 	{
-		*out++ = base64encode[in[0] >> 2];
-		*out++ = base64encode[(in[0] & 3) << 4];
-		*out++ = base64pad;
-		*out++ = base64pad;
+		buf[0] = base64encode[in[0] >> 2];
+		buf[1] = base64encode[(in[0] & 3) << 4];
+		buf[2] = base64pad;
+		buf[3] = base64pad;
+		str.Append(buf, 4);
 	}
-
-	*out = 0;
 }
 
+void
+SOAPBase64Base::Decode(const SOAPString& strx, std::vector<char>& bytes)
+{
+	size_t outlen = 0;
+
+	bool done = false;
+	const char *str = strx;
+        
+    if (str == NULL) return;
+    
+	while (!done)
+	{
+		int		in[4];
+		char	out[3];
+		int		valid = 3;
+
+		in[0] = nextChar(str);
+		in[1] = nextChar(str);
+		in[2] = nextChar(str);
+		in[3] = nextChar(str);
+
+		if (in[0] == 0)
+			break;
+
+		if (in[2] == base64pad)
+			valid = 1;
+		else if (in[3] == base64pad)
+			valid = 2;
+
+		in[0] = base64decode[in[0]];
+		in[1] = base64decode[in[1]];
+		in[2] = base64decode[in[2]];
+		in[3] = base64decode[in[3]];
+
+		if (in[0] == 0x80 ||
+			in[1] == 0x80 ||
+			in[2] == 0x80 ||
+			in[3] == 0x80)
+			throw SOAPException("Invalid character in base64 string.");
+
+		out[0] = (in[0] << 2) | (in[1] >> 4);
+		out[1] = (in[1] << 4) | (in[2] >> 2);
+		out[2] = (in[2] << 6) |  in[3];
+
+		outlen += valid;
+        
+		if (valid == 1)
+		{
+			bytes.push_back(out[0]);
+			done = true;
+		}
+		else if (valid == 2)
+		{
+			bytes.push_back(out[0]);
+			bytes.push_back(out[1]);
+			done = true;
+		}
+		else // valid == 3
+		{
+			bytes.push_back(out[0]);
+			bytes.push_back(out[1]);
+			bytes.push_back(out[2]);
+		}
+	}
+}
+
+void
+SOAPBase64Base::Encode(const std::vector<char>& bytes, SOAPString& str)
+{
+    const unsigned char *in = (const unsigned char *)&bytes[0];
+	char out[4];
+    size_t size = bytes.size();
+	size_t num64chars = (size / 3) * 4 + 4;
+
+	str.Empty();
+	str.Reserve(num64chars + 4);
+
+	while (size >= 3)
+	{
+		out[0] = base64encode[in[0] >> 2];
+		out[1] = base64encode[((in[0] & 3) << 4) | (in[1] >> 4)];
+		out[2] = base64encode[((in[1] & 0xF) << 2) | (in[2] >> 6)];
+		out[3] = base64encode[in[2] & 0x3F];
+		str.Append(out, 4);
+        in += 3;
+		size -= 3;
+	}
+
+	if (size == 2)
+	{
+		out[0] = base64encode[in[0] >> 2];
+		out[1] = base64encode[((in[0] & 3) << 4) | (in[1] >> 4)];
+		out[2] = base64encode[(in[1] & 0xF) << 2];
+		out[3] = base64pad;
+		str.Append(out, 4);
+	}
+	else if (size == 1)
+	{
+		out[0] = base64encode[in[0] >> 2];
+		out[1] = base64encode[(in[0] & 3) << 4];
+		out[2] = base64pad;
+		out[3] = base64pad;
+		str.Append(out, 4);
+	}
+}
 inline
 int getHexValue(int c)
 {
@@ -240,7 +352,7 @@ SOAPHexBase::Decode(const SOAPString& str, char *bytes, size_t& byteslen)
 	const char *s = str.Str();
 	int ub;
 
-	while ((ub = nextChar(s)) != 0)
+	while ((ub = nextChar(s)))
 	{
 		int lb = nextChar(s);
 		if (!lb)
@@ -248,7 +360,7 @@ SOAPHexBase::Decode(const SOAPString& str, char *bytes, size_t& byteslen)
 		if (outlen > byteslen)
 			throw SOAPException("");
 
-		*bytes++ = char((getHexValue(ub) << 4) + getHexValue(lb));
+		*bytes++ = ((getHexValue(ub) << 4) + getHexValue(lb));
 		++outlen;
 	}
 
@@ -260,16 +372,50 @@ SOAPHexBase::Encode(const char *b, size_t size, SOAPString& str)
 {
 	static const char *hexchars = "0123456789ABCDEF";
 
-	str.Resize(size * 2 + 1);
-	char *s = str.Str();
+	str.Empty();
+	str.Reserve((size * 2) + 1);
 	const char *const bend = b + size;
+	char buf[2];
 	while (b != bend)
 	{
 		int c = *b++;
-		*s++ = hexchars[(c >> 4) & 0x0F];
-		*s++ = hexchars[c & 0x0F];
+		buf[0] = hexchars[(c >> 4) & 0x0F];
+		buf[1] = hexchars[c & 0x0F];
+		str.Append(buf, 2);
 	}
-	*s = 0;
 }
 
+void
+SOAPHexBase::Decode(const SOAPString& str, std::vector<char>& bytes)
+{
+	const char *s = str.Str();
+	int ub;
 
+	while ((ub = nextChar(s)))
+	{
+		int lb = nextChar(s);
+		if (!lb)
+			throw SOAPException("Reached unexpected end of hex string, not an even number of characters.");
+
+		bytes.push_back((getHexValue(ub) << 4) + getHexValue(lb));
+	}
+}
+
+void
+SOAPHexBase::Encode(const std::vector<char>& bytes, SOAPString& str)
+{
+	static const char *hexchars = "0123456789ABCDEF";
+    size_t size = bytes.size();
+    std::vector<char>::const_iterator iter = bytes.begin();
+    
+	str.Empty();
+	str.Reserve((size * 2) + 1);
+	char buf[2];
+	while (size--)
+	{
+		int c = *iter++;
+		buf[0] = hexchars[(c >> 4) & 0x0F];
+		buf[1] = hexchars[c & 0x0F];
+		str.Append(buf, 2);
+	}
+}

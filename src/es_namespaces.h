@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: es_namespaces.h,v 1.1 2001/11/21 06:00:47 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/es_namespaces.h#1 $
  */
 
 #ifndef ES_NAMESPACES_H

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPNamespaces.cpp,v 1.5 2001/11/29 08:37:13 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPNamespaces.cpp#1 $
  */
 
 
@@ -27,55 +27,154 @@
 
 USING_EASYSOAP_NAMESPACE
 
-const char *SOAPEnc::base = SOAP_ENC;
+SOAPStrings::SOAPStringMap SOAPStrings::soapStrings;
 
-const SOAPQName SOAPEnc::root("root", SOAPEnc::base);
-const SOAPQName SOAPEnc::Array("Array", SOAPEnc::base);
-const SOAPQName SOAPEnc::arrayType("arrayType", SOAPEnc::base);
-const SOAPQName SOAPEnc::offset("offset", SOAPEnc::base);
-const SOAPQName SOAPEnc::position("position", SOAPEnc::base);
-const SOAPQName SOAPEnc::base64("base64", SOAPEnc::base);
+const SOAPString&
+SOAPEnc::base(void)
+{
+	static const SOAPString s(SOAP_ENC);
+	return s;
+}
 
-const char *SOAPEnv::base = SOAP_ENV;
-const SOAPQName SOAPEnv::Body("Body", SOAPEnv::base);
-const SOAPQName SOAPEnv::Header("Header", SOAPEnv::base);
-const SOAPQName SOAPEnv::Envelope("Envelope", SOAPEnv::base);
-const SOAPQName SOAPEnv::Fault("Fault", SOAPEnv::base);
-const SOAPQName SOAPEnv::encodingStyle("encodingStyle", SOAPEnv::base);
-const SOAPQName SOAPEnv::mustUnderstand("mustUnderstand", SOAPEnv::base);
-const SOAPQName SOAPEnv::actor("actor", SOAPEnv::base);
+const SOAPQName SOAPEnc::root("root", SOAPEnc::base());
+const SOAPQName SOAPEnc::Array("Array", SOAPEnc::base());
+const SOAPQName SOAPEnc::arrayType("arrayType", SOAPEnc::base());
+const SOAPQName SOAPEnc::offset("offset", SOAPEnc::base());
+const SOAPQName SOAPEnc::position("position", SOAPEnc::base());
+const SOAPQName SOAPEnc::base64("base64", SOAPEnc::base());
 
-const char *XMLSchema1999::xsi = SOAP_XSI_1999;
-const char *XMLSchema1999::xsd = SOAP_XSD_1999;
-const SOAPQName XMLSchema1999::null("null", XMLSchema1999::xsi);
-const SOAPQName XMLSchema1999::type("type", XMLSchema1999::xsi);
+const SOAPString&
+SOAPEnv::base(void)
+{
+	static const SOAPString s(SOAP_ENV);
+	return s;
+}
 
-const char *XMLSchema2001::xsi = SOAP_XSI_2001;
-const char *XMLSchema2001::xsd = SOAP_XSD_2001;
-const SOAPQName XMLSchema2001::nil("nil", XMLSchema2001::xsi);
-const SOAPQName XMLSchema2001::type("type", XMLSchema2001::xsi);
+const SOAPQName SOAPEnv::Body("Body", SOAPEnv::base());
+const SOAPQName SOAPEnv::Header("Header", SOAPEnv::base());
+const SOAPQName SOAPEnv::Envelope("Envelope", SOAPEnv::base());
+const SOAPQName SOAPEnv::Fault("Fault", SOAPEnv::base());
+const SOAPQName SOAPEnv::encodingStyle("encodingStyle", SOAPEnv::base());
+const SOAPQName SOAPEnv::mustUnderstand("mustUnderstand", SOAPEnv::base());
+const SOAPQName SOAPEnv::actor("actor", SOAPEnv::base());
 
-const SOAPQName XMLSchema2001::string("string", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::boolean("boolean", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::decimal("decimal", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::float_("float", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::double_("double", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::duration("duration", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::dateTime("dateTime", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::time("time", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::date("date", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::base64Binary("base64Binary", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::hexBinary("hexBinary", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::integer("integer", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::nonPositiveInteger("nonPositiveInteger", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::long_("long", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::int_("int", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::short_("short", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::byte("byte", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::nonNegativeInteger("nonNegativeInteger", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::unsignedLong("unsignedLong", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::unsignedInt("unsignedInt", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::unsignedShort("unsignedShort", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::unsignedByte("unsignedByte", XMLSchema2001::xsd);
-const SOAPQName XMLSchema2001::positiveInteger("positiveInteger", XMLSchema2001::xsd);
+const SOAPString&
+XMLSchema1999::xsi(void)
+{
+	static const SOAPString s(SOAP_XSI_1999);
+	return s;
+}
+const SOAPString&
+XMLSchema1999::xsd(void)
+{
+	static const SOAPString s(SOAP_XSD_1999);
+	return s;
+}
+
+const SOAPQName XMLSchema1999::null("null", XMLSchema1999::xsi());
+const SOAPQName XMLSchema1999::type("type", XMLSchema1999::xsi());
+
+const SOAPString&
+XMLSchema2001::xsi(void)
+{
+	static const SOAPString s(SOAP_XSI_2001);
+	return s;
+}
+const SOAPString&
+XMLSchema2001::xsd(void)
+{
+	static const SOAPString s(SOAP_XSD_2001);
+	return s;
+}
+
+const SOAPQName XMLSchema2001::nil("nil", XMLSchema2001::xsi());
+const SOAPQName XMLSchema2001::type("type", XMLSchema2001::xsi());
+
+const SOAPQName XMLSchema2001::string("string", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::boolean("boolean", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::decimal("decimal", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::float_("float", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::double_("double", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::duration("duration", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::dateTime("dateTime", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::time("time", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::date("date", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::base64Binary("base64Binary", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::hexBinary("hexBinary", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::integer("integer", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::nonPositiveInteger("nonPositiveInteger", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::long_("long", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::int_("int", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::short_("short", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::byte("byte", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::nonNegativeInteger("nonNegativeInteger", XMLSchema2001::xsd());
+//const SOAPQName XMLSchema2001::unsignedLong("unsignedLong", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::unsignedLong("long", XMLSchema2001::xsd());
+//const SOAPQName XMLSchema2001::unsignedInt("unsignedInt", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::unsignedInt("int", XMLSchema2001::xsd());
+//const SOAPQName XMLSchema2001::unsignedShort("unsignedShort", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::unsignedShort("short", XMLSchema2001::xsd());
+//const SOAPQName XMLSchema2001::unsignedByte("unsignedByte", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::unsignedByte("byte", XMLSchema2001::xsd());
+const SOAPQName XMLSchema2001::positiveInteger("positiveInteger", XMLSchema2001::xsd());
+
+const SOAPQName *schemaStringTable[] =
+{
+    &SOAPEnc::root,
+    &SOAPEnc::Array,
+    &SOAPEnc::arrayType,
+    &SOAPEnc::offset,
+    &SOAPEnc::position,
+    &SOAPEnc::base64,
+    &SOAPEnv::Body,
+    &SOAPEnv::Header,
+    &SOAPEnv::Envelope,
+    &SOAPEnv::Fault,
+    &SOAPEnv::encodingStyle,
+    &SOAPEnv::mustUnderstand,
+    &SOAPEnv::actor,
+    &XMLSchema1999::null,
+    &XMLSchema1999::type,
+    &XMLSchema2001::nil,
+    &XMLSchema2001::type,
+    &XMLSchema2001::string,
+    &XMLSchema2001::boolean,
+    &XMLSchema2001::decimal,
+    &XMLSchema2001::float_,
+    &XMLSchema2001::double_,
+    &XMLSchema2001::duration,
+    &XMLSchema2001::dateTime,
+    &XMLSchema2001::time,
+    &XMLSchema2001::date,
+    &XMLSchema2001::base64Binary,
+    &XMLSchema2001::hexBinary,
+    &XMLSchema2001::integer,
+    &XMLSchema2001::nonPositiveInteger,
+    &XMLSchema2001::long_,
+    &XMLSchema2001::int_,
+    &XMLSchema2001::short_,
+    &XMLSchema2001::byte,
+    &XMLSchema2001::nonNegativeInteger,
+    &XMLSchema2001::unsignedLong,
+    &XMLSchema2001::unsignedInt,
+    &XMLSchema2001::unsignedShort,
+    &XMLSchema2001::unsignedByte,
+    &XMLSchema2001::positiveInteger
+};
+
+void
+SOAPStrings::initSOAPStrings(void)
+{
+    if (soapStrings.empty())
+    {
+        soapStrings[SOAPEnc::base().Str()] = &SOAPEnc::base();
+        soapStrings[SOAPEnv::base().Str()] = &SOAPEnv::base();
+        soapStrings[XMLSchema2001::xsi().Str()] = &XMLSchema2001::xsi();
+        soapStrings[XMLSchema2001::xsd().Str()] = &XMLSchema2001::xsd();
+        for (unsigned int i = 0; i < sizeof(schemaStringTable) / sizeof(schemaStringTable[0]); i++)
+        {
+            soapStrings[schemaStringTable[i]->GetName().Str()] = &schemaStringTable[i]->GetName();
+        }
+    }
+}
 

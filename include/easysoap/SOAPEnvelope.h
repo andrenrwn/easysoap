@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPEnvelope.h,v 1.5 2004/06/02 06:33:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPEnvelope.h#1 $
  */
 
 
@@ -27,6 +27,7 @@
 
 #include <easysoap/SOAPBody.h>
 #include <easysoap/SOAPHeader.h>
+#include <boost/shared_ptr.hpp>
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -47,20 +48,12 @@ public:
 
 	bool WriteSOAPPacket(XMLComposer& packet) const;
 
-	void Reset()
-	{
-		m_header.Reset();
-		m_body.Reset();
-	}
-
 private:
-
-	SOAPEnvelope(const SOAPEnvelope&);
-	SOAPEnvelope& operator=(const SOAPEnvelope&);
-
 	SOAPHeader	m_header;
 	SOAPBody	m_body;
 };
+
+typedef boost::shared_ptr<SOAPEnvelope> SOAPEnvelopePtr;
 
 END_EASYSOAP_NAMESPACE
 

@@ -19,7 +19,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SSLServer.cpp,v 1.3 2003/06/03 17:50:39 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/tests/SSLServer.cpp#1 $
  */
 
 #include <easysoap/SOAP.h>
@@ -108,7 +108,7 @@ class SSLServer : public SOAPDispatchHandler < SSLServer >
 					if (!tmp.IsEmpty()) {
 						response.AddParameter(SSLEnvVars[i]) << tmp;
 					} else {
-						response.AddParameter(SSLEnvVars[i]) << (const char *)"Not Set";
+						response.AddParameter(SSLEnvVars[i]) << "Not Set";
 					}
 				++i;
 					
@@ -129,6 +129,5 @@ int main(int argc, char* argv[])
 
 		int rc = cgi.DispatchTo(&Obj).Handle();
 
-		return rc;
 }
 

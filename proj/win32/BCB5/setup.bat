@@ -1,7 +1,7 @@
 REM CommandInterpreter: command.com /E:1024
 REM Set EXPATHOME to the top directiory of the Expat sources
 
-SET EXPATHOME=..\..\..\..\Expat-1.95.2
+SET EXPATHOME=..\..\..\..\Expat-2.2.0
 
 if not exist ..\..\..\win32\nul mkdir ..\..\..\win32
 if not exist ..\..\..\win32\release\nul mkdir ..\..\..\win32\release

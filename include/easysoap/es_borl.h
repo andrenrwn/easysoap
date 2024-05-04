@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: es_borl.h,v 1.3 2005/09/24 07:24:24 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/es_borl.h#1 $
  */
 
 #ifndef __ES_BORL_H_
@@ -43,5 +43,7 @@
 #define EASYSOAP_EXPORT __declspec (dllimport )
 #endif // EASYSOAP_EXPORTS
 #endif // EASYSOAP_STATIC
+
+#define TYPENAME(T) T
 
 #endif // __ES_BORL_H_

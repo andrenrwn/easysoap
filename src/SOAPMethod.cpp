@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPMethod.cpp,v 1.16 2002/04/18 05:28:06 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPMethod.cpp#1 $
  */
 
 
@@ -40,9 +40,15 @@ SOAPMethod::SOAPMethod(const char *name, const char *ns)
 }
 
 SOAPMethod::SOAPMethod(const char *name, const char *ns, const char *sa)
+    : m_action(sa)
 {
 	SetName(name, ns);
-	SetSoapAction(sa);
+}
+
+SOAPMethod::SOAPMethod(const SOAPString& name, const SOAPString& ns, const SOAPString& sa)
+    : m_action(sa)
+{
+	SetName(name, ns);
 }
 
 SOAPMethod::~SOAPMethod()
@@ -55,14 +61,23 @@ SOAPMethod::SetSoapAction(const char *sa)
 	m_action = sa;
 }
 
+void
+SOAPMethod::SetSoapAction(const SOAPString& sa)
+{
+	m_action = sa;
+}
+
 bool
 SOAPMethod::WriteSOAPPacket(XMLComposer& packet) const
 {
 	packet.StartTag(GetName(), "m");
 
-	for (size_t i = 0; i < GetArray().Size(); ++i)
-		GetArray()[i]->WriteSOAPPacket(packet);
-
+    const SOAPParameter::Params& params = GetParams();
+    for(SOAPParameter::Params::const_iterator iter = params.begin();
+            iter != params.end(); ++iter)
+    {
+		(*iter).WriteSOAPPacket(packet);
+    }
 	packet.EndTag(GetName());
 
 	return true;

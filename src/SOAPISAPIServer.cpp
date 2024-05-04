@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPISAPIServer.cpp,v 1.19 2004/06/02 08:01:39 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPISAPIServer.cpp#1 $
  */
 
 
@@ -108,12 +108,6 @@ const char *
 SOAPISAPITransport::GetContentType() const
 {
 	return m_contentType;
-}
-
-const char *
-SOAPISAPITransport::GetContentEncoding() const
-{
-	return m_contentEncoding;
 }
 
 const char *

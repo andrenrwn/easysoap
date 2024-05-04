@@ -27,6 +27,7 @@ THESOURCES = \
 	SOAPServerDispatch.cpp \
 	SOAPSocket.cpp \
 	SOAPSSLContext.cpp \
+    SOAPString.cpp \
 	SOAPStructHandler.cpp \
 	SOAPTypeTraits.cpp \
 	SOAPUrl.cpp \
@@ -52,11 +53,11 @@ noinst_HEADERS = \
 
 INCLUDES=-I@top_srcdir@/include 
 
-libeasysoap_la_LDFLAGS = -no-undefined 
+libeasysoap_la_LDFLAGS = -no-undefined -fPIC 
 
 
-AM_CFLAGS=-Wall -pedantic -I/usr/kerberos/include
-AM_CXXFLAGS=-Wall -pedantic -I/usr/kerberos/include
+AM_CFLAGS=-Wall -fPIC -pedantic -I/usr/kerberos/include
+AM_CXXFLAGS=-Wall -fPIC -pedantic -I/usr/kerberos/include
 
 libeasysoap_a_CXXFLAGS = $(AM_CXXFLAGS)
 libeasysoap_a_CFLAGS = $(AM_CFLAGS)

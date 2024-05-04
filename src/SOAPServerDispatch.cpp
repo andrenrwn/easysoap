@@ -16,11 +16,23 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPServerDispatch.cpp,v 1.31 2002/04/17 23:53:16 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPServerDispatch.cpp#1 $
  */
 
 #include <easysoap/SOAPServerDispatch.h>
 #include <easysoap/SOAPDispatchHandler.h>
+
+
+BEGIN_EASYSOAP_NAMESPACE
+
+static const SOAPString env_prefix("SOAP-ENV");
+static const SOAPString xsi_prefix("xsi");
+static const SOAPString xsd_prefix("xsd");
+static const SOAPString unspecified("Unspecified");
+static const char *serverfault = "SOAP-ENV:Server";
+static const char *clientfault = "SOAP-ENV:Client";
+END_EASYSOAP_NAMESPACE
+
 
 //
 // Special exception for mustUnderstand faults
@@ -48,7 +60,7 @@ END_EASYSOAP_NAMESPACE
 USING_EASYSOAP_NAMESPACE
 
 SOAPServerDispatch::SOAPServerDispatch()
-	: m_transport(0)
+: m_composer(new XMLComposer), m_preparsed(false)
 {
 }
 
@@ -81,85 +93,114 @@ SOAPServerDispatch::DispatchTo(SOAPHeaderHandlerInterface *disp)
 // out the correct way....
 //
 void
-SOAPServerDispatch::WriteFault(const SOAPFault& fault)
+SOAPServerDispatch::WriteFault(const SOAPFault& fault,
+    SOAPServerTransport& transport, XMLComposerPtr writer)
 {
-	m_writer.Reset();
-	m_writer.StartTag("SOAP-ENV:Envelope");
-	m_writer.AddXMLNS("SOAP-ENV", SOAPEnv::base);
-	m_writer.AddXMLNS("xsi", XMLSchema2001::xsi);
-	m_writer.AddXMLNS("xsd", XMLSchema2001::xsd);
-	m_writer.StartTag("SOAP-ENV:Body");
-	fault.WriteSOAPPacket(m_writer);
-	m_writer.EndTag("SOAP-ENV:Body");
-	m_writer.EndTag("SOAP-ENV:Envelope");
+	bool bufferedResults = XMLComposer::GetBufferResults();
+	if ( !bufferedResults )
+	{
+		transport.SetError();
+		transport.WriteHeaders();
+	}
 
-	m_transport->SetError();
-	m_transport->Write(m_response.GetBody().GetMethod(), m_writer.GetBytes(), m_writer.GetLength());
+	writer->Reset();
+	writer->StartTag("SOAP-ENV:Envelope");
+	writer->AddXMLNS(env_prefix, SOAPEnv::base());
+	writer->AddXMLNS(xsi_prefix, XMLSchema2001::xsi());
+	writer->AddXMLNS(xsd_prefix, XMLSchema2001::xsd());
+	writer->StartTag("SOAP-ENV:Body");
+	fault.WriteSOAPPacket(*writer);
+	writer->EndTag("SOAP-ENV:Body");
+	writer->EndTag("SOAP-ENV:Envelope");
+
+	if ( bufferedResults )
+	{
+		transport.SetError();
+		transport.Write(m_response->GetBody().GetMethod(),
+                writer->GetBytes(), writer->GetLength());
+	}
 }
 
 
+void
+SOAPServerDispatch::WriteFault(const SOAPFault& fault)
+{
+    WriteFault(fault, *m_transport, m_writer);
+}
+
+
+void
+SOAPServerDispatch::parse(SOAPEnvelopePtr request, SOAPServerTransportPtr trans) {
+    m_parser.Parse(*request, *trans);
+    m_request = request;
+    m_preparsed = true;
+}
 
 bool
-SOAPServerDispatch::Handle(SOAPServerTransport& trans)
+SOAPServerDispatch::Handle(SOAPServerTransportPtr trans,
+	XMLComposerPtr composer)
 {
 	bool retval = false;
-	const char *serverfault = "SOAP-ENV:Server";
-	const char *clientfault = "SOAP-ENV:Client";
 	const char *faultcode = serverfault;
 
-	m_transport = &trans;
+	m_transport = trans;
+	m_response.reset(new SOAPResponse);
+	m_writer = composer.get() != NULL ? composer : m_composer;
 
 	try
 	{
-		m_request.Reset();
-		m_response.Reset();
-
 		// Parse the SOAP packet
 		faultcode = clientfault;
-		m_parser.Parse(m_request, trans);
+		// if transport hasn't been read then
+		// allocate new request and response
+		if (!m_preparsed) {
+			m_request.reset(new SOAPEnvelope);
+			parse(m_request, trans);
+		}
 		faultcode = serverfault;
 
-		SOAPMethod& requestMethod = m_request.GetBody().GetMethod();
-		requestMethod.SetSoapAction(trans.GetSoapAction());
+		// Setup the SOAP action based on the method name
+		SOAPMethod& requestMethod = m_request->GetBody().GetMethod();
+		SOAPQName methodName = requestMethod.GetName();
+		requestMethod.SetSoapAction(trans->GetSoapAction());
 
-		SOAPMethod& responseMethod = m_response.GetBody().GetMethod();
-
-		//
 		// Set up the "suggested" method return name.  Actual
 		// method can change it.  In future we set it up with
 		// WSDL.
-		m_respname = requestMethod.GetName().GetName();
-		m_respname.Append("Response");
-		responseMethod.SetName(m_respname, requestMethod.GetName().GetNamespace());
+		SOAPString respname = requestMethod.GetName().GetName();
+		respname.Append("Response");
+		SOAPMethod& responseMethod = m_response->GetBody().GetMethod();
+		responseMethod.SetName(respname, requestMethod.GetName().GetNamespace());
 
-		//
 		// Handle any headers we have...
-		HandleHeaders(m_request, m_response);
+		HandleHeaders(*m_request, *m_response);
 
-		//
 		// Now handle the request
-		if (!HandleRequest(m_request, m_response))
-		{
-			const char *methns = requestMethod.GetName().GetNamespace();
-			const char *methname = requestMethod.GetName().GetName();
+        // 
+		if (!HandleRequest(*m_request, *m_response))
+		{ 
 			faultcode = clientfault;
-			if (!methns)
-				methns ="Unspecified";
-			if (!methname)
-				methname ="Unspecified";
-			throw SOAPException("Unknown method \"{%s}:%s\"", methns, methname);
+			throw SOAPException("Unknown method \"{%s}:%s\"", 
+                    methodName.GetNamespace().IsEmpty() ? unspecified.Str() : methodName.GetNamespace().Str(),
+                    methodName.GetName().IsEmpty() ? unspecified.Str() : methodName.GetName().Str());
 		}
 
-		//
-		// Compose our SOAP packet response
-		m_response.WriteSOAPPacket(m_writer);
-		m_response.GetBody().GetMethod().Reset();
+		bool bufferedResults = XMLComposer::GetBufferResults();
+		if ( !bufferedResults )
+		{
+			m_transport->WriteHeaders();
+		}
 
-		//
-		// Send back the repsonse.
-		m_transport->Write(m_response.GetBody().GetMethod(),
-			m_writer.GetBytes(),
-			m_writer.GetLength());
+		// Compose our SOAP packet response
+		m_response->WriteSOAPPacket(*m_writer);
+
+		if ( bufferedResults )
+		{
+			// Send back the repsonse.
+			m_transport->Write(m_response->GetBody().GetMethod(),
+				m_writer->GetBytes(),
+				m_writer->GetLength());
+		}
 
 		retval = true;
 	}
@@ -196,6 +237,11 @@ SOAPServerDispatch::Handle(SOAPServerTransport& trans)
 		WriteFault(fault);
 	}
 
+    m_request.reset();
+    m_response.reset();
+    m_writer.reset();
+    m_preparsed = false;
+
 	return retval;
 }
 
@@ -223,17 +269,18 @@ void
 SOAPServerDispatch::HandleHeaders(SOAPEnvelope& request, SOAPResponse& response)
 {
 	const SOAPHeader::Headers& headers = request.GetHeader().GetAllHeaders();
-	for (SOAPHeader::Headers::ConstIterator h = headers.Begin(); h != headers.End(); ++h)
+	for (SOAPHeader::Headers::const_iterator h = headers.begin();
+           h != headers.end(); ++h)
 	{
 		const SOAPParameter& header = **h;
-		SOAPParameter::Attrs::Iterator actor = header.GetAttributes().Find(SOAPEnv::actor);
-		SOAPParameter::Attrs::Iterator mu = header.GetAttributes().Find(SOAPEnv::mustUnderstand);
+		const SOAPAttribute* actor = header.FindAttribute(SOAPEnv::actor);
+		const SOAPAttribute* mu = header.FindAttribute(SOAPEnv::mustUnderstand);
 
-		if (!mu || (*mu == "0" || *mu == "1"))
+		if ((mu == NULL) || (mu->GetValue() == "0") || (mu->GetValue() == "1"))
 		{
 			//
 			// TODO: Be able to specify/check for a custom QName for this endpoint
-			if (!actor || (*actor == SOAPHeader::actorNext))
+			if ((actor == NULL) || (actor->GetValue() == SOAPHeader::actorNext))
 			{
 				//
 				// TODO:  This is an O(n) lookup... but n is (hopefully!) small
@@ -249,7 +296,7 @@ SOAPServerDispatch::HandleHeaders(SOAPEnvelope& request, SOAPResponse& response)
 
 				//
 				// check for mustUnderstand == 1
-				if (i == m_headerHandlers.End() && mu && *mu == "1")
+				if (i == m_headerHandlers.End() && (mu != NULL) && (mu->GetValue() == "1"))
 				{
 					// TODO:  Special MustUnderstand exception so the
 					// actor(?) in the SOAPFault can be set correctly.
@@ -264,7 +311,7 @@ SOAPServerDispatch::HandleHeaders(SOAPEnvelope& request, SOAPResponse& response)
 			throw SOAPMustUnderstandException("Invalid value for mustUnderstand attribute on header {%s}:%s: %s",
 				(const char *)header.GetName().GetNamespace(),
 				(const char *)header.GetName().GetName(),
-				(const char *)mu->GetName());
+				(const char *)mu->GetName().GetName());
 		}
 	}
 }

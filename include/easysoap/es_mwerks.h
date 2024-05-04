@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: es_mwerks.h,v 1.1 2001/11/19 18:14:07 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/es_mwerks.h#1 $
  */
 
 #ifndef __ES_MWERKS_H_

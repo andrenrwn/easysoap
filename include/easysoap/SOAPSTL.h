@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSTL.h,v 1.8 2004/06/02 06:33:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPSTL.h#1 $
  */
 
 #ifndef _SOAPSTL_H_
@@ -69,13 +69,13 @@ public:
 
 	static SOAPParameter& Serialize(SOAPParameter& param, const std::string& val)
 	{
-		param.SetValue(val.c_str());
+		param.GetStringRef() = val.c_str();
 		return param;
 	}
 
 	static const SOAPParameter& Deserialize(const SOAPParameter& param, std::string& val)
 	{
-		val = (const char *)param.GetString();
+		val = (const std::string &)param.GetString();
 		return param;
 	}
 };
@@ -92,7 +92,6 @@ class SOAPTypeTraits< std::vector<T> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<bool> > : public SOAPArrayTypeTraits
 {
 };
@@ -100,7 +99,6 @@ class SOAPTypeTraits< std::vector<bool> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<short> > : public SOAPArrayTypeTraits
 {
 };
@@ -108,7 +106,6 @@ class SOAPTypeTraits< std::vector<short> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<int> > : public SOAPArrayTypeTraits
 {
 };
@@ -116,7 +113,6 @@ class SOAPTypeTraits< std::vector<int> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<long> > : public SOAPArrayTypeTraits
 {
 };
@@ -124,7 +120,6 @@ class SOAPTypeTraits< std::vector<long> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<float> > : public SOAPArrayTypeTraits
 {
 };
@@ -132,7 +127,6 @@ class SOAPTypeTraits< std::vector<float> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<double> > : public SOAPArrayTypeTraits
 {
 };
@@ -140,12 +134,38 @@ class SOAPTypeTraits< std::vector<double> > : public SOAPArrayTypeTraits
 /**
 *
 */
-template<>
 class SOAPTypeTraits< std::vector<std::string> > : public SOAPArrayTypeTraits
 {
 };
 #endif // HAVE_PARTIAL_SPECIALIZATION
 
+/**
+*
+*/
+class SOAPSTLByteArrayEncodingTraits
+{
+public:
+	template<typename T>
+	static SOAPParameter&
+	Serialize(SOAPParameter& param, const T& val)
+	{
+		val.Encode(val.m_arr ? *val.m_arr : *val.m_carr, param.GetStringRef());
+		return param;
+	}
+
+	template<typename T>
+	static const SOAPParameter&
+	Deserialize(const SOAPParameter& param, T& val)
+	{
+		size_t size = val.EstimateSize(param.GetStringRef());
+		if (size > 0)
+		{
+			val.m_arr->reserve(size);
+			val.Decode(param.GetStringRef(), *val.m_arr);
+		}
+		return param;
+	}
+};
 
 //
 // Traits for base64 encoded byte arrays
@@ -176,8 +196,20 @@ private:
 /**
 *
 */
+class SOAPSTLBase64Traits : public SOAPSTLByteArrayEncodingTraits
+{
+public:
+	static void GetType(SOAPQName& type)
+	{
+		type = XMLSchema2001::base64Binary;
+	}
+};
+
+/**
+*
+*/
 template<>
-class SOAPTypeTraits< SOAPSTLBase64 > : public SOAPBase64Traits
+class SOAPTypeTraits< SOAPSTLBase64 > : public SOAPSTLBase64Traits
 {
 };
 
@@ -209,8 +241,20 @@ private:
 /**
 *
 */
+class SOAPSTLHexTraits : public SOAPSTLByteArrayEncodingTraits
+{
+public:
+	static void GetType(SOAPQName& type)
+	{
+		type = XMLSchema2001::hexBinary;
+	}
+};
+
+/**
+*
+*/
 template<>
-class SOAPTypeTraits< SOAPSTLHex > : public SOAPHexTraits
+class SOAPTypeTraits< SOAPSTLHex > : public SOAPSTLHexTraits
 {
 };
 
@@ -243,11 +287,11 @@ public:
 	static const SOAPParameter& Deserialize(const SOAPParameter& param, V& val)
 	{
 		TYPENAME(V::key_type) key;
-		const SOAPParameter::Array& arr = param.GetArray();
-		for (SOAPParameter::Array::ConstIterator i = arr.Begin(); i != arr.End(); ++i)
+		const SOAPParameter::Params& arr = param.GetParams();
+		for (SOAPParameter::Params::const_iterator i = arr.begin(); i != arr.end(); ++i)
 		{
-			(*i)->GetParameter("key") >> key;
-			(*i)->GetParameter("value") >> val[key];
+			(*i).GetParameter("key") >> key;
+			(*i).GetParameter("value") >> val[key];
 		}
 		return param;
 	}
@@ -262,6 +306,37 @@ class SOAPTypeTraits< std::map<K, V> > : public SOAPSTLMapTypeTraits
 {
 };
 #endif // HAVE_PARTIAL_SPECIALIZATION
+
+/**
+  *
+  */
+template <typename T>
+class SOAPTypeTraits< std::vector< std::vector< T > > > : public SOAPArrayTypeTraits
+{
+	public:
+	template <typename V>
+	static SOAPParameter& Serialize(SOAPParameter& param, const V& val)
+	{
+		//
+		// Add SOAP-ENC:arrayType attribute
+		char buffer[32];
+	
+		SOAPQName& atype = param.AddAttribute(SOAPEnc::arrayType).GetValue();
+		SOAPTypeTraits<T>::GetType(atype);
+		snprintf(buffer, sizeof(buffer), "[][%d]", val.size());
+		atype.GetName().Append(buffer);
+	
+		//
+		// Serialize the array values
+		param.SetIsStruct();
+		for (TYPENAME(V::const_iterator) i = val.begin(); i != val.end(); ++i)
+		{
+			SOAPParameter &rParam = param.AddParameter();
+			SOAPTypeTraits<TYPENAME(V::value_type)>::Serialize(rParam, *i);
+		}
+		return param;
+	}
+};
 
 END_EASYSOAP_NAMESPACE
 

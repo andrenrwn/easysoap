@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: XMLParser.h,v 1.6 2003/06/03 17:32:19 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/XMLParser.h#1 $
  */
 
 
@@ -43,6 +43,8 @@ public:
 	void *GetParseBuffer(int size);
 	bool ParseBuffer(int size);
 	const char *GetErrorMessage();
+	static void setDTDProcessingState(bool allow);
+	static bool getDTDProcessingState();
 
 protected:
 	virtual void startElement(const char *name, const char **attrs);
@@ -63,6 +65,10 @@ private:
 	static void _characterData(void *userData, const XML_Char *str, int len);
 	static void _startNamespace(void *userData, const XML_Char *prefix, const XML_Char *uri);
 	static void _endNamespace(void *userData, const XML_Char *prefix);
+	static void _startDoctypeDeclHandler(void *userData, const XML_Char * doctypeName,
+								const XML_Char * sysid, const XML_Char * pubid,
+								int has_internal_subset);
+	struct XML_ParserStruct* getParserStruct();
 
 	void FreeParser();
 	struct XML_ParserStruct *m_parser;

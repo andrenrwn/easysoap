@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSocket.h,v 1.6 2002/09/17 19:29:28 kingmob Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPSocket.h#1 $
  */
 
 
@@ -37,7 +37,21 @@ class SOAPSocketInterface
 public:
 	virtual ~SOAPSocketInterface() {}
 
-	// -1 means blocking
+    //
+    // F5 Note: 
+    //
+    // At this level (and only at this level), a 0 value is
+    // interpreted as a poll operation, returning immediately.  In
+    // addition, a -1 value is interpreted as a blocking operation.
+    //
+    // At higher levels, 0 is interpreted as a block operation and -1
+    // is interpreted as "almost" block (waiting for UINT_MAX
+    // seconds).  Before calling the low level Wait methods, the
+    // caller must convert between the two interfaces.  In general,
+    // this will involve either skipping the Wait function and
+    // immediately calling a blocking Read or Write or converting the
+    // 0 to -1 before calling the Wait functions.
+    //
 	virtual bool WaitRead(int sec = -1, int usec = 0) = 0;
 	virtual bool WaitWrite(int sec = -1, int usec = 0) = 0;
 	virtual bool IsOpen() = 0;
@@ -46,8 +60,12 @@ public:
 	virtual size_t Read(char *buffer, size_t len) = 0;
 	virtual size_t Write(const char *buffer, size_t len) = 0;
 
+        virtual void  SetTimeout(size_t timeout) { m_timeout = timeout; }
+        virtual size_t  GetTimeout() { return m_timeout; }
+
 protected:
 	SOAPSocketInterface() {}
+	size_t		m_timeout;
 };
 
 /**
@@ -65,8 +83,6 @@ private:
 	const char	*m_buffend;
 	char		*m_wpos;
 	const char  *m_wend;
-	size_t		m_timeout;
-	bool		m_delsocket;
 
 	bool	Readbuff();
 
@@ -76,6 +92,7 @@ private:
 protected:
 	SOAPProtocolBase();
 	void	Flush();
+	size_t		m_timeout;
 
 public:
 	virtual ~SOAPProtocolBase();
@@ -87,6 +104,7 @@ public:
 	virtual void Close();
 	virtual bool Connect(const char *host, unsigned int port);
 	virtual void SetTimeout(size_t secs) {m_timeout = secs;}
+	virtual size_t GetTimeout(size_t secs) {return m_timeout;}
 
 	// read up to len chars
 	virtual size_t Read(char *buffer, size_t len);

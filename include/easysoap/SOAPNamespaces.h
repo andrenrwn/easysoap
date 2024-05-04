@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPNamespaces.h,v 1.5 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPNamespaces.h#1 $
  */
 
 
@@ -31,7 +31,7 @@ BEGIN_EASYSOAP_NAMESPACE
 class EASYSOAP_EXPORT SOAPEnc
 {
 public:
-	static const char *base;
+	static const SOAPString& base(void);
 
 	//
 	// for locating the document root
@@ -54,7 +54,7 @@ public:
 class EASYSOAP_EXPORT SOAPEnv
 {
 public:
-	static const char *base;
+	static const SOAPString& base(void);
 
 	static const SOAPQName Body;
 	static const SOAPQName Header;
@@ -74,8 +74,8 @@ public:
 class EASYSOAP_EXPORT XMLSchema2001
 {
 public:
-	static const char *xsi;
-	static const char *xsd;
+	static const SOAPString& xsi(void);
+	static const SOAPString& xsd(void);
 
 	static const SOAPQName type;
 	static const SOAPQName nil;
@@ -117,11 +117,18 @@ public:
 class EASYSOAP_EXPORT XMLSchema1999
 {
 public:
-	static const char *xsi;
-	static const char *xsd;
+	static const SOAPString& xsi(void);
+	static const SOAPString& xsd(void);
 
 	static const SOAPQName type;
 	static const SOAPQName null;
+};
+
+class SOAPStrings {
+    public:
+        typedef std::map<const char *, const SOAPString *> SOAPStringMap;
+        static SOAPStringMap soapStrings;
+        static void initSOAPStrings(void);
 };
 
 END_EASYSOAP_NAMESPACE

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPDebugger.h,v 1.3 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPDebugger.h#1 $
  */
 
 
@@ -24,6 +24,7 @@
 #define AFX_SOAPDEBUGGER_H__2ED6E429_A5CB_4FEB_B1B1_19E83A2F8046__INCLUDED_
 
 #include <stdio.h>
+#include <syslog.h>
 #include <easysoap/SOAP.h>
 
 BEGIN_EASYSOAP_NAMESPACE
@@ -38,11 +39,17 @@ public:
 	// Returns true if we were able to open
 	// the file for writing.
 	static bool SetFile(const char *fname);
+	static void SetLogComponent(const char *component);
+	static void SetLogFacility(int log_facility = LOG_LOCAL0);
 
 	static void SetMessageLevel(int level);
 	static void Close();
 	static void Write(int level, const char *bytes, size_t len);
 	static void Print(int level, const char *str, ...);
+
+	static void OpenLog(void);
+	static void SysLog(const char *str, ...);
+	static void CloseLog(void);
 
 private:
 	SOAPDebugger();
@@ -50,6 +57,9 @@ private:
 
 	static FILE	*m_file;
 	static int	m_messageLevel;
+	static bool	m_syslog;
+	static SOAPString m_logComponent;
+	static int  m_logFacility;
 };
 
 END_EASYSOAP_NAMESPACE

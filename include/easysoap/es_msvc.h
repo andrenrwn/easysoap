@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: es_msvc.h,v 1.10 2006/11/09 07:24:38 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/es_msvc.h#1 $
  */
 
 #ifndef __ES_MSVC_H_
@@ -47,10 +47,7 @@
 #define HAVE_STRICMP
 #define HAVE_NAMESPACES
 #if _MSC_VER >= 1310
-#define HAVE_TYPENAME
-#endif
-#if _MSC_VER >= 1400
-#define _CRT_SECURE_NO_DEPRECATE
+#define HAVE_TEMPLATE_KEYWORD_QUALIFIER
 #endif
 
 #define snprintf _snprintf
@@ -67,9 +64,5 @@
 #define EASYSOAP_EXPORT __declspec (dllimport )
 #endif // EASYSOAP_EXPORTS
 #endif // EASYSOAP_STATIC
-
-#define HAVE_64BIT_INT
-#define INT64BIT __int64
-#define UINT64BIT unsigned __int64
 
 #endif // __ES_MSVC_H_

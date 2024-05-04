@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSocket.cpp,v 1.21 2002/09/17 19:24:48 kingmob Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPSocket.cpp#1 $
  */
 
 
@@ -24,6 +24,7 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
+#include <string>
 #include <easysoap/SOAPSocket.h>
 #include <easysoap/SOAPDebugger.h>
 #include "SOAPClientSocketImp.h"
@@ -38,7 +39,6 @@ SOAPProtocolBase::SOAPProtocolBase()
 	, m_wpos(0)
 	, m_wend(0)
 	, m_timeout(0)
-	, m_delsocket(true)
 {
 }
 
@@ -51,7 +51,7 @@ void
 SOAPProtocolBase::Close()
 {
 	SOAPDebugger::Print(5, "SOAPProtocolBase::Close()\r\n");
-	if (m_delsocket) {
+	if (m_socket) {
 		delete m_socket;
 		m_socket = 0;
 	}
@@ -66,7 +66,6 @@ SOAPProtocolBase::SetSocket(SOAPSocketInterface *socket)
 {
 	Close();
 	m_socket = socket;
-	m_delsocket = false;
 	m_wpos = m_wbuff;
 	m_wend = m_wpos + sizeof(m_wbuff);
 }
@@ -99,7 +98,8 @@ SOAPProtocolBase::Readbuff()
 	m_buffend = 0;
 
 	if (m_timeout > 0 && !m_socket->WaitRead(m_timeout))
-		throw SOAPSocketException("Timed out waiting for socket read.");
+		throw SOAPSocketException(SOAPSocketException::READ_FAILED,
+                "Timed out waiting for socket read.");
 
 	int bytes = m_socket->Read(m_buffer, sizeof(m_buffer));
 	if (bytes > 0)
@@ -115,7 +115,8 @@ size_t
 SOAPProtocolBase::Read(char *buffer, size_t len)
 {
 	if (!m_socket)
-		throw SOAPSocketException("Protocol doesn't have a socket.");
+		throw SOAPSocketException(SOAPSocketException::NO_SOCKET,
+                "Protocol doesn't have a socket.");
 
 	Flush(); // in case we haven't sent everything
 	if (m_buff != m_buffend)
@@ -130,7 +131,8 @@ SOAPProtocolBase::Read(char *buffer, size_t len)
 	}
 
 	if (m_timeout > 0 && !m_socket->WaitRead(m_timeout))
-		throw SOAPSocketException("Timed out waiting for socket read.");
+		throw SOAPSocketException(SOAPSocketException::READ_FAILED,
+                "Timed out waiting for socket read.");
 
 	return m_socket->Read(buffer, len);
 }
@@ -139,7 +141,8 @@ size_t
 SOAPProtocolBase::ReadLine(char *buff, size_t bufflen)
 {
 	if (!m_socket)
-		throw SOAPSocketException("Protocol doesn't have a socket.");
+		throw SOAPSocketException(SOAPSocketException::NO_SOCKET,
+                "Protocol doesn't have a socket.");
 
 	if (bufflen == 0)
 		return 0;
@@ -191,7 +194,8 @@ size_t
 SOAPProtocolBase::Write(const char *buff, size_t bufflen)
 {
 	if (!m_socket)
-		throw SOAPSocketException("Protocol doesn't have a socket.");
+		throw SOAPSocketException(SOAPSocketException::NO_SOCKET,
+                "Protocol doesn't have a socket.");
 
 	const char *bend = buff + bufflen;
 	while (buff != bend)

@@ -9,11 +9,7 @@
 #define STRICMP strcasecmp
 #else
 #ifdef HAVE_STRICMP
-#if _MSC_VER >= 1400
-#define STRICMP _stricmp
-#else
 #define STRICMP stricmp
-#endif
 #else
 #error "No stricmp function."
 #endif
@@ -61,20 +57,20 @@ void DigestCalcHA1(
       HASH HA1;
 
       MD5Init(&Md5Ctx);
-      MD5Update(&Md5Ctx, pszUserName, strlen(pszUserName));
-      MD5Update(&Md5Ctx, ":", 1);
-      MD5Update(&Md5Ctx, pszRealm, strlen(pszRealm));
-      MD5Update(&Md5Ctx, ":", 1);
-      MD5Update(&Md5Ctx, pszPassword, strlen(pszPassword));
-      MD5Final(HA1, &Md5Ctx);
+      MD5Update(&Md5Ctx, (unsigned char*)pszUserName, strlen(pszUserName));
+      MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+      MD5Update(&Md5Ctx, (unsigned char*)pszRealm, strlen(pszRealm));
+      MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+      MD5Update(&Md5Ctx, (unsigned char*)pszPassword, strlen(pszPassword));
+      MD5Final((unsigned char *)HA1, &Md5Ctx);
       if (STRICMP(pszAlg, "md5-sess") == 0) {
             MD5Init(&Md5Ctx);
-            MD5Update(&Md5Ctx, HA1, HASHLEN);
-            MD5Update(&Md5Ctx, ":", 1);
-            MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
-            MD5Update(&Md5Ctx, ":", 1);
-            MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
-            MD5Final(HA1, &Md5Ctx);
+            MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHLEN);
+            MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+            MD5Update(&Md5Ctx, (unsigned char*)pszNonce, strlen(pszNonce));
+            MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+            MD5Update(&Md5Ctx, (unsigned char*)pszCNonce, strlen(pszCNonce));
+            MD5Final((unsigned char *)HA1, &Md5Ctx);
       };
       CvtHex(HA1, SessionKey);
 }
@@ -99,32 +95,32 @@ void DigestCalcResponse(
 
       /* calculate H(A2) */
       MD5Init(&Md5Ctx);
-      MD5Update(&Md5Ctx, pszMethod, strlen(pszMethod));
-      MD5Update(&Md5Ctx, ":", 1);
-      MD5Update(&Md5Ctx, pszDigestUri, strlen(pszDigestUri));
-      if (STRICMP(pszQop, "auth-int") == 0) {
-            MD5Update(&Md5Ctx, ":", 1);
-            MD5Update(&Md5Ctx, HEntity, HASHHEXLEN);
+      MD5Update(&Md5Ctx, (unsigned char*)pszMethod, strlen(pszMethod));
+      MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+      MD5Update(&Md5Ctx, (unsigned char*)pszDigestUri, strlen(pszDigestUri));
+      if (STRICMP(pszQop, (char*)"auth-int") == 0) {
+            MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+            MD5Update(&Md5Ctx, (unsigned char*)HEntity, HASHHEXLEN);
       };
-      MD5Final(HA2, &Md5Ctx);
+      MD5Final((unsigned char *)HA2, &Md5Ctx);
        CvtHex(HA2, HA2Hex);
 
       /* calculate response */
       MD5Init(&Md5Ctx);
-      MD5Update(&Md5Ctx, HA1, HASHHEXLEN);
-      MD5Update(&Md5Ctx, ":", 1);
-      MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
-      MD5Update(&Md5Ctx, ":", 1);
+      MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHHEXLEN);
+      MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+      MD5Update(&Md5Ctx, (unsigned char*)pszNonce, strlen(pszNonce));
+      MD5Update(&Md5Ctx, (unsigned char*)":", 1);
       if (*pszQop) {
-          MD5Update(&Md5Ctx, pszNonceCount, strlen(pszNonceCount));
-          MD5Update(&Md5Ctx, ":", 1);
-          MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
-          MD5Update(&Md5Ctx, ":", 1);
-          MD5Update(&Md5Ctx, pszQop, strlen(pszQop));
-          MD5Update(&Md5Ctx, ":", 1);
+          MD5Update(&Md5Ctx, (unsigned char*)pszNonceCount, strlen(pszNonceCount));
+          MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+          MD5Update(&Md5Ctx, (unsigned char*)pszCNonce, strlen(pszCNonce));
+          MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+          MD5Update(&Md5Ctx, (unsigned char*)pszQop, strlen(pszQop));
+          MD5Update(&Md5Ctx, (unsigned char*)":", 1);
       };
-      MD5Update(&Md5Ctx, HA2Hex, HASHHEXLEN);
-      MD5Final(RespHash, &Md5Ctx);
+      MD5Update(&Md5Ctx, (unsigned char*)HA2Hex, HASHHEXLEN);
+      MD5Final((unsigned char *)RespHash, &Md5Ctx);
       CvtHex(RespHash, Response);
 }
 

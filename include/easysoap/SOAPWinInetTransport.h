@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPWinInetTransport.h,v 1.9 2004/06/02 08:23:59 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPWinInetTransport.h#1 $
  */
 
 #if !defined(AFX_SOAPWININETTRANSPORT_H__7D357522_E8B1_45A2_8CE1_A472A7D58C13__INCLUDED_)
@@ -41,7 +41,6 @@ private:
 
 	SOAPString		m_charset;
 	SOAPString		m_contentType;
-	SOAPString		m_contentEncoding;
 	SOAPString		m_errorString;
 	SOAPString		m_userAgent;
 	size_t			m_canRead;
@@ -69,20 +68,8 @@ public:
 
 	const char *GetCharset() const;
 	const char *GetContentType() const;
-	const char *GetContentEncoding() const;
 	size_t Read(char *buffer, size_t bufflen);
 	size_t Write(const SOAPMethod& method, const char *packet, size_t len);
-
-	// Extra MS Extensions
-	typedef enum {
-		hNone,
-		hInternet,
-		hConnect,
-		hRequest,
-	} _HType;
-
-	BOOL _InternetSetOption(_HType htype, DWORD dwOption, LPVOID lpBuffer, DWORD dwBufferLength);
-	BOOL _InternetQueryOption(_HType htype, DWORD dwOption, LPVOID lpBuffer, LPDWORD lpdwBufferLength);
 };
 
 END_EASYSOAP_NAMESPACE

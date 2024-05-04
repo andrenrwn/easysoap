@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPQName.h,v 1.3 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPQName.h#1 $
  */
 
 
@@ -37,21 +37,50 @@ public:
 	{
 	}
 
-	SOAPQName(const char *name, const char *ns = 0)
+	SOAPQName(const SOAPString &name, const SOAPString &ns) :
+        m_name(name), m_namespace(ns)
+	{
+		m_name = name;
+		m_namespace = ns;
+	}
+
+	SOAPQName(const char *name, const SOAPString &ns) :
+        m_name(name), m_namespace(ns)
+	{
+	}
+
+	SOAPQName(const SOAPString &name) :
+        m_name(name)
+	{
+	}
+
+	SOAPQName(const SOAPString &name, const char *ns) :
+        m_name(name), m_namespace(ns)
+	{
+	}
+
+	SOAPQName(const char *name, const char *ns = 0) :
+        m_name(name), m_namespace(ns)
 	{
 		Set(name, ns);
 	}
 
-	SOAPQName(const SOAPQName& that)
+	SOAPQName(const SOAPQName& that) :
+        m_name(that.m_name), m_namespace(that.m_namespace)
 	{
-		m_name = that.m_name;
-		m_namespace = that.m_namespace;
 	}
 
 	~SOAPQName()
 	{
 	}
 
+	SOAPQName& operator=(const SOAPString& name)
+	{
+		m_name = name;
+		m_namespace = "";
+		return *this;
+	}
+    
 	SOAPQName& operator=(const SOAPQName& that)
 	{
 		m_name = that.m_name;
@@ -72,10 +101,27 @@ public:
 		m_namespace = ns;
 	}
 
+	void Set(const char *name, const SOAPString& ns)
+	{
+		m_name = name;
+		m_namespace = ns;
+	}
+    
+	void Set(const SOAPString& name, const SOAPString& ns)
+	{
+		m_name = name;
+		m_namespace = ns;
+	}
+
+	void Set(const SOAPQName& name) 
+	{
+		*this = name;
+	}
+
 	bool operator==(const SOAPQName& that) const
 	{
-		return (m_name.IsEmpty() && that.m_name.IsEmpty() || m_name == that.m_name)
-			&& (m_namespace.IsEmpty() && that.m_namespace.IsEmpty() || m_namespace == that.m_namespace);
+		return ((m_name.IsEmpty() && that.m_name.IsEmpty()) || m_name == that.m_name)
+			&& ((m_namespace.IsEmpty() && that.m_namespace.IsEmpty()) || m_namespace == that.m_namespace);
 	}
 
 	bool operator!=(const SOAPQName& that) const
@@ -86,6 +132,17 @@ public:
 	bool operator==(const char *name) const
 	{
 		return m_namespace.IsEmpty() && m_name == name;
+	}
+    
+	bool operator==(const SOAPString &name) const
+	{
+		return m_namespace.IsEmpty() && m_name == name;
+	}
+    
+	bool operator<(const SOAPQName& name) const
+	{
+        int c = m_name.Compare(name.m_name);
+		return (c < 0) || ((c == 0) && (m_namespace < name.m_namespace));
 	}
 
 	SOAPString& GetName()

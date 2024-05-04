@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPServer.h,v 1.5 2006/11/10 18:03:25 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPServer.h#1 $
  */
 
 
@@ -42,12 +42,12 @@ protected:
 };
 
 #define IMPLEMENT_DISPATCH(T) \
-T& DispatchTo(EASYSOAP_NAMESPACE(SOAPDispatchHandlerInterface)* disp)\
+T& DispatchTo(SOAPDispatchHandlerInterface* disp)\
 {\
 	m_dispatch.DispatchTo(disp);\
 	return *this;\
 }\
-T& DispatchTo(EASYSOAP_NAMESPACE(SOAPHeaderHandlerInterface)* disp)\
+T& DispatchTo(SOAPHeaderHandlerInterface* disp)\
 {\
 	m_dispatch.DispatchTo(disp);\
 	return *this;\

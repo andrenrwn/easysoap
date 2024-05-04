@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParameterHandler.h,v 1.14 2003/06/03 17:30:18 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPParameterHandler.h#1 $
  */
 
 
@@ -54,7 +54,7 @@ public:
 
 private:
 	SOAPParameter		*m_param;
-	SOAPArray<char>		m_str;
+    std::string         m_str;
 	SOAPStructHandler	*m_structHandler;
 	SOAPQName			m_attrName;
 	bool				m_setvalue;

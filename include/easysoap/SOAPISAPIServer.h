@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPISAPIServer.h,v 1.8 2004/06/02 08:01:38 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPISAPIServer.h#1 $
  */
 
 
@@ -62,7 +62,6 @@ public:
 	void SetError();
 	const char *GetCharset() const;
 	const char *GetContentType() const;
-	const char *GetContentEncoding() const;
 	const char *GetSoapAction() const;
 	size_t Read(char *buffer, size_t buffsize);
 	size_t Write(const SOAPMethod& method, const char *payload, size_t payloadsize);
@@ -77,7 +76,6 @@ private:
 	size_t						m_leftRead;
 	SOAPString					m_charset;
 	SOAPString					m_contentType;
-	SOAPString					m_contentEncoding;
 	SOAPString					m_soapaction;
 	SOAPArray<char>				m_buffer;
 	SOAPArray<char>				m_headers;

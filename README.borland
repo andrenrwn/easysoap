@@ -15,9 +15,9 @@ shouldn't be hard but you'll have to do that yourself at this stage. The
 easy way to do it is to delete the DOS commands in those files and do what
 they do manually, its not hard.
 
-You require Expat version 1.95.2 to be installed in a directory adjacent 
+You require Expat version 2.2.0 to be installed in a directory adjacent 
 to EasySoap. The project and makefiles depend on the export lib 
-expatrel.lib being in Expat-1.95.2/Libs, and setup.bat (invoked by both 
+expatrel.lib being in Expat-2.2.0/Libs, and setup.bat (invoked by both 
 the projects and make files) tries to copy expatrel.dll from the Expat 
 tree over to win32/release.
 

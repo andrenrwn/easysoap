@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParameterHandler.cpp,v 1.30 2004/06/02 06:33:05 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPParameterHandler.cpp#1 $
  */
 
 #ifdef _MSC_VER
@@ -40,6 +40,7 @@ SOAPParameterHandler::SOAPParameterHandler()
 , m_structHandler(0)
 , m_setvalue(false)
 {
+    m_str.reserve(1024);
 }
 
 SOAPParameterHandler::~SOAPParameterHandler()
@@ -50,23 +51,22 @@ SOAPParameterHandler::~SOAPParameterHandler()
 SOAPParseEventHandler *
 SOAPParameterHandler::start(SOAPParser& parser, const char *name, const char **attrs)
 {
-	m_param->Reset();
 	m_param->SetNull(false);
 
 	const char *ns = sp_strchr(name, PARSER_NS_SEP[0]);
 	if (ns)
 	{
-		m_param->GetName().GetNamespace() = "";
-		m_param->GetName().GetNamespace().Append(name, ns - name);
-		m_param->GetName().GetName() = ++ns;
+        SOAPString nsstring(name, ns - name); 
+		m_param->GetName().GetNamespace() = parser.DeclareString(nsstring);
+        m_param->GetName().GetName() = parser.DeclareString(++ns);
 	}
 	else
 	{
-		m_param->SetName(name);
+	    m_param->SetName(parser.DeclareString(name));
 	}
 
 	m_setvalue = true;
-	m_str.Resize(0);
+	m_str.clear();
 
 	const char **cattrs = attrs;
 	while (*cattrs)
@@ -77,24 +77,24 @@ SOAPParameterHandler::start(SOAPParser& parser, const char *name, const char **a
 		const char *tsep = sp_strchr(tag, PARSER_NS_SEP[0]);
 		if (tsep)
 		{
-				m_attrName.GetNamespace() = "";
-				m_attrName.GetNamespace().Append(tag, tsep - tag);
-				m_attrName.GetName() = ++tsep;
+                SOAPString attrns(tag, tsep - tag);
+				m_attrName.GetNamespace() = parser.DeclareString(attrns);
+				m_attrName.GetName() = parser.DeclareString(++tsep);
 
-				SOAPQName& attr = m_param->AddAttribute(m_attrName);
+				SOAPQName& attr = m_param->AddAttribute(m_attrName).GetValue();
 
 				const char *vsep = sp_strchr(val, ':');
 				if (vsep)
 				{
-					const char *vns = parser.ExpandNamespace(val, vsep);
-					if (vns)
-						attr.Set(++vsep, vns);
+					const SOAPString& vns = parser.ExpandNamespace(val, vsep);
+					if (!vns.IsEmpty())
+						attr.Set(parser.DeclareString(++vsep), vns);
 					else
-						attr = val;
+						attr = parser.DeclareString(val);
 				}
 				else
 				{
-					attr = val;
+					attr = parser.DeclareString(val);
 				}
 		}
 		else
@@ -106,8 +106,8 @@ SOAPParameterHandler::start(SOAPParser& parser, const char *name, const char **a
 			}
 			else
 			{
-				m_attrName = tag;
-				m_param->AddAttribute(m_attrName) = val;
+				m_attrName = parser.DeclareString(tag);
+				m_param->AddAttribute(m_attrName).GetValue() = val;
 			}
 		}
 	}
@@ -132,7 +132,7 @@ void
 SOAPParameterHandler::characterData(const char *str, int len)
 {
 	if (m_setvalue)
-		m_str.Add(str, len);
+		m_str.append(str, len);
 }
 
 void
@@ -140,7 +140,6 @@ SOAPParameterHandler::endElement(const char *)
 {
 	if (m_setvalue)
 	{
-		m_str.Add(char(0)); // null terminate
-		m_param->GetStringRef() = m_str.Ptr();
+		m_param->GetStringRef() = m_str.c_str();
 	}
 }

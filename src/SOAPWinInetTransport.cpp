@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPWinInetTransport.cpp,v 1.11 2004/06/02 08:23:59 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPWinInetTransport.cpp#1 $
  */
 
 #ifdef _MSC_VER
@@ -112,6 +112,8 @@ SOAPWinInetTransport::ConnectTo(const SOAPUrl& endpoint, const SOAPUrl& proxy)
 	if (m_endpoint.Protocol() != SOAPUrl::http_proto && m_endpoint.Protocol() != SOAPUrl::https_proto)
 		throw SOAPSocketException("Invalid protocol specified.  Only http and https are supported.");
 
+	DWORD ptype = INTERNET_OPEN_TYPE_PRECONFIG;
+
 	char proxystr[256];
 	snprintf(proxystr, sizeof(proxystr), "%s:%u",
 		(const char *)proxy.Hostname(), proxy.Port());
@@ -125,7 +127,7 @@ SOAPWinInetTransport::ConnectTo(const SOAPUrl& endpoint, const SOAPUrl& proxy)
 		throw SOAPSocketException("Could not initialize internet connection: %s", GetErrorInfo());
 
 	m_hConnect = InternetConnectA(m_hInternet,
-		m_endpoint.Hostname(), (INTERNET_PORT)m_endpoint.Port(),
+		m_endpoint.Hostname(), m_endpoint.Port(),
 		m_endpoint.User(), m_endpoint.Password(),
 		INTERNET_SERVICE_HTTP, 0, 0);
 
@@ -143,12 +145,6 @@ const char *
 SOAPWinInetTransport::GetCharset() const
 {
 	return m_charset;
-}
-
-const char *
-SOAPWinInetTransport::GetContentEncoding() const
-{
-	return m_contentEncoding;
 }
 
 size_t
@@ -192,7 +188,7 @@ SOAPWinInetTransport::Write(const SOAPMethod& method, const char *packet, size_t
 	if (!m_hConnect)
 	{
 		m_hConnect = InternetConnectA(m_hInternet,
-			m_endpoint.Hostname(), (INTERNET_PORT)m_endpoint.Port(),
+			m_endpoint.Hostname(), m_endpoint.Port(),
 			m_endpoint.User(), m_endpoint.Password(),
 			INTERNET_SERVICE_HTTP, 0, 0);
 	}
@@ -225,32 +221,24 @@ SOAPWinInetTransport::Write(const SOAPMethod& method, const char *packet, size_t
 	char headers[256];
 	if (method.GetSoapAction())
 	{
-		snprintf(headers, sizeof(headers),
-			"Content-Type: text/xml; charset=UTF-8\r\n"
-#ifdef HAVE_LIBZ
-			"Accept-Encoding: gzip, deflate\r\n"
-#endif // HAVE_LIBZ
+		snprintf(headers, sizeof(headers), "Content-Type: text/xml; charset=UTF-8\r\n"
 			"SOAPAction: \"%s\"\r\n", (const char *)method.GetSoapAction());
 	}
 	else
 	{
-		snprintf(headers, sizeof(headers),
-			"Content-Type: text/xml; charset=UTF-8\r\n"
-#ifdef HAVE_LIBZ
-			"Accept-Encoding: gzip, deflate\r\n"
-#endif // HAVE_LIBZ
+		snprintf(headers, sizeof(headers), "Content-Type: text/xml; charset=UTF-8\r\n"
 			"SOAPAction: \"\"\r\n");
 	}
 
 	BOOL sendSuccess = FALSE;
 	do
 	{
-		sendSuccess = HttpSendRequestA(m_hRequest, headers, DWORD(-1),
+		sendSuccess = HttpSendRequestA(m_hRequest, headers, -1,
 			(void *)packet, packetlen);
 
-		if (!HttpQueryInfoA(m_hRequest,
-			HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER,
-			&dwCode, &dwSize, NULL))
+		if ( !HttpQueryInfoA(m_hRequest,
+			HTTP_QUERY_STATUS_CODE |
+			HTTP_QUERY_FLAG_NUMBER, &dwCode, &dwSize, NULL))
 		{
 			CloseRequest();
 			throw SOAPException("Failed to get back server status code.");
@@ -320,20 +308,16 @@ SOAPWinInetTransport::Write(const SOAPMethod& method, const char *packet, size_t
 
 	DWORD qsize = sizeof(m_canRead);
 
-	if (!HttpQueryInfo(m_hRequest,
+	if (!HttpQueryInfo (m_hRequest,
 			HTTP_QUERY_CONTENT_LENGTH |
 			HTTP_QUERY_FLAG_NUMBER, &m_canRead, &qsize, NULL))
-		m_canRead = size_t(-1);
+		m_canRead = -1;
 
-	char qbuf[256];
-	qsize = sizeof(qbuf);
-	if (!HttpQueryInfo(m_hRequest, HTTP_QUERY_CONTENT_TYPE, qbuf, &qsize, NULL))
-		qbuf[0] = 0;
-	SOAPHTTPProtocol::ParseContentType(m_contentType, m_charset, qbuf);
-	qsize = sizeof(qbuf);
-	if (!HttpQueryInfo(m_hRequest, HTTP_QUERY_CONTENT_ENCODING, qbuf, &qsize, NULL))
-		qbuf[0] = 0;
-	m_contentEncoding = qbuf;
+	char contenttype[256];
+	qsize = sizeof(contenttype);
+	if (!HttpQueryInfoA(m_hRequest, HTTP_QUERY_CONTENT_TYPE, contenttype, &qsize, NULL))
+		contenttype[0] = 0;
+	SOAPHTTPProtocol::ParseContentType(m_contentType, m_charset, contenttype);
 
 	return packetlen;
 }
@@ -359,35 +343,4 @@ SOAPWinInetTransport::GetErrorInfo()
 
 	return m_errorString = errMessage;
 }
-
-BOOL
-SOAPWinInetTransport::_InternetSetOption(_HType htype, DWORD dwOption, LPVOID lpBuffer, DWORD dwBufferLength)
-{
-	HINTERNET hi = 0;
-	switch (htype)
-	{
-	case hInternet: hi = m_hInternet; break;
-	case hConnect: hi = m_hConnect; break;
-	case hRequest: hi = m_hRequest; break;
-	default:
-		break;
-	}
-	return InternetSetOption(hi, dwOption, lpBuffer, dwBufferLength);
-}
-
-BOOL
-SOAPWinInetTransport::_InternetQueryOption(_HType htype, DWORD dwOption, LPVOID lpBuffer, LPDWORD lpdwBufferLength)
-{
-	HINTERNET hi = 0;
-	switch (htype)
-	{
-	case hInternet: hi = m_hInternet; break;
-	case hConnect: hi = m_hConnect; break;
-	case hRequest: hi = m_hRequest; break;
-	default:
-		break;
-	}
-	return InternetQueryOption(hi, dwOption, lpBuffer, lpdwBufferLength);
-}
-
 

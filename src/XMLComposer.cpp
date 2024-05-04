@@ -16,23 +16,25 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: XMLComposer.cpp,v 1.6 2006/11/09 07:24:45 dcrowley Exp $
+ * XMLComposer.cpp,v 1.1 2001/12/20 22:38:19 dcrowley Exp
  */
 
-
+#include <string>
 #include <easysoap/SOAP.h>
 #include <easysoap/XMLComposer.h>
 
 USING_EASYSOAP_NAMESPACE
 
 bool XMLComposer::g_makePretty = false;
+bool XMLComposer::g_bufferResults = true;
 
-XMLComposer::XMLComposer()
+static const SOAPString ns_prefix("ns");
+
+XMLComposer::XMLComposer(XMLComposerOutput* output)
 : m_instart(false)
-, m_buffer(0)
-, m_buffptr(0)
-, m_buffend(0)
-, m_buffsize(0)
+, m_output(output ? *output :
+        (g_bufferResults ? (XMLComposerOutput&)m_buffer :
+                                 (XMLComposerOutput&)m_stdout))
 , m_gensym(0)
 , m_level(0)
 {
@@ -40,7 +42,6 @@ XMLComposer::XMLComposer()
 
 XMLComposer::~XMLComposer()
 {
-	delete [] m_buffer;
 }
 
 void
@@ -49,11 +50,25 @@ XMLComposer::SetAddWhiteSpace(bool ws)
 	g_makePretty = ws;
 }
 
-const char *
-XMLComposer::GetSymbol(char *buff, size_t size, const char *prefix)
+void
+XMLComposer::SetBufferResults(bool use_buffer)
 {
-	snprintf(buff, size, "%s%d", prefix, ++m_gensym);
-	return buff;
+	g_bufferResults = use_buffer;
+}
+
+bool
+XMLComposer::GetBufferResults()
+{
+	return g_bufferResults;
+}
+
+void
+XMLComposer::GetSymbol(SOAPString& symbol,  const SOAPString& prefix)
+{
+	char buf[12];
+	sprintf(buf, "%d", ++m_gensym);
+	symbol = prefix;
+	symbol += buf;
 }
 
 void
@@ -62,9 +77,9 @@ XMLComposer::Reset(bool addDecl)
 	m_gensym = 0;
 	m_level = 0;
 	m_instart = false;
-	m_buffptr = m_buffer;
-	m_nsmap.Clear();
-	m_nsarray.Resize(0);
+    m_buffer.Reset();
+	m_nsmap.clear();
+	m_nsarray.clear();
 
 	if (addDecl)
 	{
@@ -78,16 +93,13 @@ XMLComposer::Reset(bool addDecl)
 const char *
 XMLComposer::GetBytes()
 {
-	if (m_buffptr == m_buffend)
-		Resize();
-	*m_buffptr = 0;
-	return m_buffer;
+	return m_buffer.GetBytes();
 }
 
 unsigned int
 XMLComposer::GetLength()
 {
-	return m_buffptr - m_buffer;
+	return m_buffer.GetLength();
 }
 
 void
@@ -120,12 +132,20 @@ XMLComposer::StartTag(const char *tag)
 }
 
 void
+XMLComposer::StartTag(const SOAPString& tag)
+{
+    StartTag(tag.Str());
+}
+
+void
 XMLComposer::StartTag(const SOAPQName& tag, const char *prefix)
 {
-	const char *nsprefix = 0;
-	bool addxmlns = false;
-	char buffer[64];
+	StartTag(tag, SOAPString(prefix));
+}
 
+void
+XMLComposer::StartTag(const SOAPQName& tag, const SOAPString& prefix)
+{
 	if (tag.GetNamespace().IsEmpty())
 	{
 		StartTag(tag.GetName());
@@ -137,40 +157,37 @@ XMLComposer::StartTag(const SOAPQName& tag, const char *prefix)
 	EndStart();
 	Write("<");
 
+	SOAPString nsprefix;
 	if (!tag.GetNamespace().IsEmpty())
 	{
-		NamespaceMap::Iterator i = m_nsmap.Find(tag.GetNamespace());
-		if (!i)
+		NamespaceMap::const_iterator i = m_nsmap.find(tag.GetNamespace());
+		if (i != m_nsmap.end())
 		{
-			addxmlns = true;
-			if (prefix)
+			Write((*i).second.prefix);
+		}
+        else
+		{
+			if (!prefix.IsEmpty())
 				nsprefix = prefix;
 			else
-				nsprefix = GetSymbol(buffer, sizeof(buffer), "ns");
-		}
-		else
-		{
-			nsprefix = i->prefix;
+				GetSymbol(nsprefix, ns_prefix);
+
+		    Write(nsprefix);
 		}
 
-		Write(nsprefix);
 		Write(":");
 	}
 
 	Write(tag.GetName());
 	m_instart = true;
 
-	if (addxmlns)
-		AddXMLNS(nsprefix, tag.GetNamespace());
+    if (!nsprefix.IsEmpty())
+        AddXMLNS(nsprefix, tag.GetNamespace());
 }
 
 void
 XMLComposer::AddAttr(const SOAPQName& tag, const char *value)
 {
-	const char *nsprefix = 0;
-	bool addxmlns = false;
-	char buffer[64];
-
 	if (!m_instart)
 		throw SOAPException("XML serialization error.  Adding attribute when not in start tag.");
 
@@ -179,20 +196,20 @@ XMLComposer::AddAttr(const SOAPQName& tag, const char *value)
 	else
 		Write(" ");
 
+	SOAPString nsprefix;
 	if (!tag.GetNamespace().IsEmpty())
 	{
-		NamespaceMap::Iterator i = m_nsmap.Find(tag.GetNamespace());
-		if (!i)
+		NamespaceMap::const_iterator i = m_nsmap.find(tag.GetNamespace());
+		if (i != m_nsmap.end())
 		{
-			addxmlns = true;
-			nsprefix = GetSymbol(buffer, sizeof(buffer), "ns");
+			Write((*i).second.prefix);
 		}
-		else
+        else
 		{
-			nsprefix = i->prefix;
+			GetSymbol(nsprefix, ns_prefix);
+		    Write(nsprefix);
 		}
 
-		Write(nsprefix);
 		Write(":");
 	}
 
@@ -201,20 +218,13 @@ XMLComposer::AddAttr(const SOAPQName& tag, const char *value)
 	WriteEscaped(value);
 	Write("\"");
 
-	if (addxmlns)
-		AddXMLNS(nsprefix, tag.GetNamespace());
+	if (!nsprefix.IsEmpty())
+        AddXMLNS(nsprefix, tag.GetNamespace());
 }
 
 void
-XMLComposer::AddAttr(const SOAPQName& tag, const SOAPQName& value)
+XMLComposer::AddAttr(const SOAPQName& tag, const SOAPString& value)
 {
-	const char *tnsprefix = 0;
-	const char *vnsprefix = 0;
-	bool addtns = false;
-	bool addvns = false;
-	char tbuff[64];
-	char vbuff[64];
-
 	if (!m_instart)
 		throw SOAPException("XML serialization error.  Adding attribute when not in start tag.");
 
@@ -223,44 +233,80 @@ XMLComposer::AddAttr(const SOAPQName& tag, const SOAPQName& value)
 	else
 		Write(" ");
 
+	SOAPString nsprefix;
 	if (!tag.GetNamespace().IsEmpty())
 	{
-		NamespaceMap::Iterator i = m_nsmap.Find(tag.GetNamespace());
-		if (!i)
+		NamespaceMap::const_iterator i = m_nsmap.find(tag.GetNamespace());
+		if (i != m_nsmap.end())
 		{
-			addtns = true;
-			tnsprefix = GetSymbol(tbuff, sizeof(tbuff), "ns");
+			Write((*i).second.prefix);
 		}
-		else
+        else
 		{
-			tnsprefix = i->prefix;
+			GetSymbol(nsprefix, ns_prefix);
+		    Write(nsprefix);
 		}
 
-		Write(tnsprefix);
+		Write(":");
+	}
+
+	Write(tag.GetName());
+	Write("=\"");
+	WriteEscaped(value);
+	Write("\"");
+
+	if (!nsprefix.IsEmpty())
+        AddXMLNS(nsprefix, tag.GetNamespace());
+}
+void
+XMLComposer::AddAttr(const SOAPQName& tag, const SOAPQName& value)
+{
+	if (!m_instart)
+		throw SOAPException("XML serialization error.  Adding attribute when not in start tag.");
+
+	if (g_makePretty)
+		Write("\r\n\t");
+	else
+		Write(" ");
+
+    SOAPString tnsprefix;
+	if (!tag.GetNamespace().IsEmpty())
+	{
+		NamespaceMap::const_iterator i = m_nsmap.find(tag.GetNamespace());
+		if (i != m_nsmap.end())
+		{
+			Write((*i).second.prefix);
+		}
+        else
+		{
+			GetSymbol(tnsprefix, ns_prefix);
+		    Write(tnsprefix);
+		}
+
 		Write(":");
 	}
 
 	Write(tag.GetName());
 	Write("=\"");
 
+    SOAPString vnsprefix;
 	if (value.GetNamespace().IsEmpty())
 	{
 		Write(value.GetName());
 	}
 	else
 	{
-		NamespaceMap::Iterator i = m_nsmap.Find(value.GetNamespace());
-		if (!i)
+		NamespaceMap::const_iterator i = m_nsmap.find(value.GetNamespace());
+		if (i != m_nsmap.end())
 		{
-			addvns = true;
-			vnsprefix = GetSymbol(vbuff, sizeof(vbuff), "ns");
+			Write((*i).second.prefix);
 		}
 		else
 		{
-			vnsprefix = i->prefix;
+			GetSymbol(vnsprefix, ns_prefix);
+            Write(vnsprefix);
 		}
 
-		Write(vnsprefix);
 		Write(":");
 		WriteEscaped(value.GetName());
 
@@ -268,10 +314,10 @@ XMLComposer::AddAttr(const SOAPQName& tag, const SOAPQName& value)
 
 	Write("\"");
 
-	if (addtns)
-		AddXMLNS(tnsprefix, tag.GetNamespace());
-	if (addvns)
-		AddXMLNS(vnsprefix, value.GetNamespace());
+    if (!tnsprefix.IsEmpty())
+        AddXMLNS(tnsprefix, tag.GetNamespace());
+    if (!vnsprefix.IsEmpty())
+        AddXMLNS(vnsprefix, value.GetNamespace());
 }
 
 void
@@ -294,15 +340,21 @@ XMLComposer::AddAttr(const char *attr, const char *value)
 void
 XMLComposer::AddXMLNS(const char *prefix, const char *ns)
 {
-	NamespaceMap::Iterator i = m_nsmap.Find(ns);
-	if (!i)
+    AddXMLNS(SOAPString(prefix), SOAPString(ns));
+}
+
+void
+XMLComposer::AddXMLNS(const SOAPString &prefix, const SOAPString &ns)
+{
+	NamespaceMap::const_iterator i = m_nsmap.find(ns);
+	if (i == m_nsmap.end())
 	{
 		NamespaceInfo& ni = m_nsmap[ns];
 		ni.prefix = prefix;
 		ni.level = m_level;
 		ni.value = ns;
 
-		m_nsarray.Add(ni);
+		m_nsarray.push_back(&ni);
 
 		if (g_makePretty)
 			Write("\r\n\t");
@@ -320,13 +372,23 @@ XMLComposer::AddXMLNS(const char *prefix, const char *ns)
 		Write("\"");
 	}
 }
-
 void
 XMLComposer::EndTag(const char *tag)
 {
+	bool bUseShortcut = 0;
 	if (m_instart)
 	{
-		Write("/>");
+		if ( bUseShortcut )
+		{
+			Write("/>");
+		}
+		else
+		{
+			Write("></");
+			Write(tag);
+			Write(">");
+		}
+
 		if (g_makePretty)
 			Write("\r\n");
 		m_instart = false;
@@ -344,8 +406,15 @@ XMLComposer::EndTag(const char *tag)
 }
 
 void
+XMLComposer::EndTag(const SOAPString &tag)
+{
+    EndTag(tag.Str());
+}
+
+void
 XMLComposer::EndTag(const SOAPQName& tag)
 {
+	bool bUseShortcut = 0;
 	if (tag.GetNamespace().IsEmpty())
 	{
 		EndTag(tag.GetName());
@@ -354,7 +423,29 @@ XMLComposer::EndTag(const SOAPQName& tag)
 
 	if (m_instart)
 	{
-		Write("/>");
+		if ( bUseShortcut )
+		{
+			Write("/>");
+		}
+		else
+		{
+			Write("></");
+
+			if (!tag.GetNamespace().IsEmpty())
+			{
+				NamespaceMap::const_iterator i = m_nsmap.find(tag.GetNamespace());
+				if (i == m_nsmap.end())
+					throw SOAPException("EndTag: Could not find tag for namespace: %s",
+						(const char *)tag.GetNamespace());
+
+				Write((*i).second.prefix);
+				Write(":");
+			}
+	
+			Write(tag.GetName());
+			Write(">");
+		}
+
 		if (g_makePretty)
 			Write("\r\n");
 		m_instart = false;
@@ -365,12 +456,12 @@ XMLComposer::EndTag(const SOAPQName& tag)
 
 		if (!tag.GetNamespace().IsEmpty())
 		{
-			NamespaceMap::Iterator i = m_nsmap.Find(tag.GetNamespace());
-			if (!i)
+			NamespaceMap::const_iterator i = m_nsmap.find(tag.GetNamespace());
+			if (i == m_nsmap.end())
 				throw SOAPException("EndTag: Could not find tag for namespace: %s",
 					(const char *)tag.GetNamespace());
 
-			Write(i->prefix);
+			Write((*i).second.prefix);
 			Write(":");
 		}
 
@@ -407,37 +498,9 @@ XMLComposer::EndStart()
 }
 
 void
-XMLComposer::Resize()
-{
-	m_buffsize *= 2;
-	if (m_buffsize == 0)
-		m_buffsize = 4096;
-
-	char *newbuff = new char[m_buffsize];
-	char *d = newbuff;
-	const char *s = m_buffer;
-	while (s != m_buffptr)
-		*d++ = *s++;
-
-	delete [] m_buffer;
-	m_buffer = newbuff;
-	m_buffptr = d;
-	m_buffend = newbuff + m_buffsize;
-}
-
-void
 XMLComposer::Write(const char *str)
 {
-	if (str)
-	{
-		while (*str)
-		{
-			if (m_buffptr == m_buffend)
-				Resize();
-			else
-				*m_buffptr++ = *str++;
-		}
-	}
+    m_output.Write(str);
 }
 
 void
@@ -447,24 +510,17 @@ XMLComposer::WriteEscaped(const char *str)
 	{
 		while (*str)
 		{
-			if (m_buffptr == m_buffend)
-				Resize();
-			else
-			{
-				char c = *str++;
-				switch (c)
-				{
-				case '&':	Write("&amp;");		break;
-				case '<':	Write("&lt;");		break;
-				case '>':	Write("&gt;");		break;
-				case '\'':	Write("&apos;");	break;
-				case '\"':	Write("&quot;");	break;
-				case '\r':	Write("&#xd;");		break;
-				default:
-					*m_buffptr++ = c;
-					break;
-				}
-			}
+            char c = *str++;
+            switch (c)
+            {
+            case '&':	Write("&amp;");		break;
+            case '<':	Write("&lt;");		break;
+            case '>':	Write("&gt;");		break;
+            case '\'':	Write("&apos;");	break;
+            case '\"':	Write("&quot;");	break;
+            case '\r':	Write("&#xd;");		break;
+            default:    m_output.Write(c);    break;
+            }
 		}
 	}
 }
@@ -472,27 +528,22 @@ XMLComposer::WriteEscaped(const char *str)
 void
 XMLComposer::Write(const char *str, unsigned int len)
 {
-	const char *strend = str + len;
-	while (str != strend)
+	while (len--)
 	{
-		if (m_buffptr == m_buffend)
-			Resize();
-		*m_buffptr++ = *str++;
+        m_output.Write(*str++);
 	}
 }
 
 void
 XMLComposer::PopLevel()
 {
-	size_t numRemoved = 0;
-	for (NamespaceArray::Iterator i = m_nsarray.End(); i-- != m_nsarray.Begin();)
+	for (NamespaceArray::iterator i = m_nsarray.end(); i-- != m_nsarray.begin();)
 	{
-		if (i->level != m_level)
+		if ((*i)->level != m_level)
 			break;
-		m_nsmap.Remove(i->value);
-		++numRemoved;
+		m_nsmap.erase((*i)->value);
+                i = m_nsarray.erase(i);
 	}
-	m_nsarray.Resize(m_nsarray.Size() - numRemoved);
 	--m_level;
 }
 
@@ -502,3 +553,88 @@ XMLComposer::PushLevel()
 	++m_level;
 }
 
+XMLComposerBuffer::XMLComposerBuffer(void) :
+    m_buffer(0), m_buffptr(0), m_buffend(0), m_buffsize(0)
+{
+}
+
+XMLComposerBuffer::~XMLComposerBuffer()
+{
+    delete [] m_buffer;
+    m_buffer = NULL;
+}
+
+const char *
+XMLComposerBuffer::GetBytes(void)
+{
+	if (m_buffptr) *m_buffptr = 0;
+	return m_buffer;
+}
+
+unsigned int
+XMLComposerBuffer::GetLength()
+{
+	return m_buffptr - m_buffer;
+}
+
+void
+XMLComposerBuffer::Write(char c)
+{
+    if (m_buffptr == m_buffend)
+    {
+        Resize();
+    }
+    
+    *m_buffptr++ = c;
+}
+
+void
+XMLComposerBuffer::Write(const char* s)
+{
+    while (*s)
+    {
+        if (m_buffptr == m_buffend)
+        {
+            Resize();
+        }
+        *m_buffptr++ = *s++;
+    }
+}
+
+void
+XMLComposerBuffer::Resize(void)
+{
+	m_buffsize *= 2;
+	if (m_buffsize == 0)
+		m_buffsize = 4096;
+
+	char *newbuff = new char[m_buffsize];
+    int length = GetLength();
+    memcpy(newbuff, m_buffer, length);
+
+	delete [] m_buffer;
+	m_buffer = newbuff;
+	m_buffptr = newbuff + length;
+	m_buffend = newbuff + m_buffsize;
+}
+
+void
+XMLComposerBuffer::Reset(void)
+{
+	m_buffptr = m_buffer;
+}
+
+void
+XMLComposerStdout::Write(char c)
+{
+    fputc(c, stdout);
+}
+
+void
+XMLComposerStdout::Write(const char* s)
+{
+    while(*s)
+    {
+        fputc(*s++, stdout);
+    }
+}

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBodyHandler.cpp,v 1.23 2003/06/03 17:30:11 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPBodyHandler.cpp#1 $
  */
 
 
@@ -64,8 +64,8 @@ SOAPBodyHandler::start(SOAPParser&, const char *, const char **)
 SOAPParseEventHandler *
 SOAPBodyHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
-	const char *id = 0;
-	const char *href = 0;
+	SOAPString id;
+	bool is_href = false;
 	bool notRoot = false;
 
 	const char **cattrs = attrs;
@@ -79,7 +79,7 @@ SOAPBodyHandler::startElement(SOAPParser& parser, const char *name, const char *
 		}
 		else if (sp_strcmp(tag, "href") == 0)
 		{
-			href = val;
+			is_href = true;
 		}
 		else if (sp_strcmp(tag, SOAP_ENC PARSER_NS_SEP "root") == 0)
 		{
@@ -91,9 +91,9 @@ SOAPBodyHandler::startElement(SOAPParser& parser, const char *name, const char *
 	{
 		SOAPParameter *p = &m_body->AddParameter();
 
-		if (href)
+		if (is_href)
 			parser.SetHRefParam(p);
-		if (id)
+		if (!id.IsEmpty())
 			parser.SetIdParam(id, p);
 
 		m_paramHandler.SetParameter(p);

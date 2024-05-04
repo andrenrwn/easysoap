@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPEnvelope.cpp,v 1.16 2001/12/20 22:38:19 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPEnvelope.cpp#1 $
  */
 
 
@@ -35,6 +35,13 @@
 
 USING_EASYSOAP_NAMESPACE
 
+static const SOAPString A_prefix("A");
+static const SOAPString s_prefix("s");
+static const SOAPString y_prefix("y");
+static const SOAPString iControl_prefix("iControl");
+static const SOAPString iControl_namespace("urn:iControl");
+static const SOAPString envelope_prefix("E");
+
 SOAPEnvelope::SOAPEnvelope()
 {
 
@@ -49,15 +56,16 @@ bool
 SOAPEnvelope::WriteSOAPPacket(XMLComposer& packet) const
 {
 	packet.Reset();
-	packet.StartTag(SOAPEnv::Envelope, "E");
+	packet.StartTag(SOAPEnv::Envelope, envelope_prefix);
 
 	// TODO: automagically add only the tags we need...
-	packet.AddXMLNS("A", SOAPEnc::base);
-	packet.AddXMLNS("s", XMLSchema2001::xsi);
-	packet.AddXMLNS("y", XMLSchema2001::xsd);
+	packet.AddXMLNS(A_prefix, SOAPEnc::base());
+	packet.AddXMLNS(s_prefix, XMLSchema2001::xsi());
+	packet.AddXMLNS(y_prefix, XMLSchema2001::xsd());
+	packet.AddXMLNS(iControl_prefix, iControl_namespace);
 
 	// TODO: allow user to set custom encoding style
-	packet.AddAttr(SOAPEnv::encodingStyle, SOAPEnc::base);
+	packet.AddAttr(SOAPEnv::encodingStyle, SOAPEnc::base());
 
 	m_header.WriteSOAPPacket(packet);
 	m_body.WriteSOAPPacket(packet);

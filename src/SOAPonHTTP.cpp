@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPonHTTP.cpp,v 1.64 2006/11/09 20:53:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPonHTTP.cpp#1 $
  */
 
 /* Modified 20-aug-2001 Tor Molnes ConsultIT AS
@@ -33,6 +33,11 @@
 #include <easysoap/SOAPDebugger.h>
 
 #include "SOAPSecureSocketImp.h"
+
+// For route domain checking in WriteHostHeader
+#include <arpa/inet.h>
+#include <string>
+#include <sstream>
 
 // For MD5 Digest Authentication
 extern "C" {
@@ -89,16 +94,28 @@ SOAPonHTTP::Write(const SOAPMethod& method, const char *payload, size_t payloads
 		m_http.BeginPost(m_endpoint.Path());
 		m_http.WriteHeader("User-Agent", m_userAgent.IsEmpty() ?
 				DEFAULT_USERAGENT : (const char *)m_userAgent);
+		if (!m_customHeader.IsEmpty()) {
+			m_http.WriteHeader(m_customHeader.Str(), m_customHeaderVal.Str());
+		}
 
-		m_http.WriteHeader("Content-Type", "text/xml; charset=UTF-8");
-#ifdef HAVE_LIBZ
-		m_http.WriteHeader("Accept-Encoding", "gzip, deflate");
-#endif // HAVE_LIBZ
+		m_http.WriteHeader("Content-Type", "text/xml; charset=\"UTF-8\"");
+		if (!m_endpoint.User().IsEmpty() || !m_endpoint.Password().IsEmpty())
+		{
+			SOAPString up = m_endpoint.User();
+			up.Append(":");
+			up.Append(m_endpoint.Password());
+			SOAPString enc;
+			SOAPBase64Base::Encode(up, up.Length(), enc);
+
+			up = "Basic ";
+			up.Append(enc);
+			m_http.WriteHeader("Authorization", (const char *)up);
+		}
 
 		m_http.Write("SOAPAction:");
 		if (method.GetSoapAction())
 		{
-			m_http.Write("\"");
+			m_http.Write(" \"");
 			m_http.Write(method.GetSoapAction());
 			m_http.Write("\"");
 		}
@@ -145,22 +162,22 @@ SOAPonHTTP::Write(const SOAPMethod& method, const char *payload, size_t payloads
 	return ret;
 }
 
-const char *
+size_t
+SOAPonHTTP::WriteHeaders(long content_length)
+{
+	return content_length;
+}
+
+const SOAPString&
 SOAPonHTTP::GetCharset() const
 {
 	return m_http.GetCharset();
 }
 
-const char *
+const SOAPString&
 SOAPonHTTP::GetContentType() const
 {
 	return m_http.GetContentType();
-}
-
-const char *
-SOAPonHTTP::GetContentEncoding() const
-{
-	return m_http.GetContentEncoding();
 }
 
 void
@@ -186,19 +203,17 @@ void
 SOAPonHTTP::ConnectTo(const SOAPUrl& endpoint, const SOAPUrl& proxy)
 {
 	m_endpoint = endpoint;
-
 	if (m_ctx)
 			m_http.SetContext(*m_ctx);
 	if (m_cbdata)
 			m_http.SetVerifyCBData(m_cbdata);
-
 	m_http.ConnectTo(endpoint, proxy);
 }
 
-SOAPHTTPProtocol::~SOAPHTTPProtocol()
+void
+SOAPonHTTP::SetTimeout(size_t secs)
 {
-	delete m_sslsocket;
-	m_sslsocket = 0;
+	m_http.SetTimeout(secs);
 }
 
 void
@@ -220,25 +235,25 @@ SOAPHTTPProtocol::ConnectTo(const SOAPUrl& endpoint)
 void
 SOAPHTTPProtocol::WriteHostHeader(const SOAPUrl& url)
 {
-	if (url.PortIsDefault())
-		WriteHeader("Host", (const char *)url.Hostname());
-	else
-	{
-		char buffer[256];
-		snprintf(buffer, sizeof(buffer), "%s:%d",
-				(const char *)url.Hostname(),
-				url.Port());
-		WriteHeader("Host", buffer);
-	}
+    std::string host = url.Hostname();
+    struct in6_addr buf;
+
+    inet_pton(AF_INET6, url.Hostname(), (void*)&buf);  // XXX check for error?
+
+    if (url.PortIsDefault())
+        WriteHeader("Host", host.c_str());
+    else
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s:%d", host.c_str(), url.Port());
+        WriteHeader("Host", buffer);
+    }
 }
 
 int
 SOAPHTTPProtocol::Get(const char *path)
 {
 	StartVerb("GET", path);
-	AddAuthorization("Authorization", m_endpoint);
-	AddAuthorization("Proxy-Authorization", m_proxy);
-
 	WriteLine("");
 	int ret = GetReply();
 	if (ret == 100)
@@ -269,11 +284,12 @@ SOAPHTTPProtocol::StartVerb(const char *verb, const char *path)
 	if (!path)
 		throw SOAPException("Invalid NULL path");
 
-	FlushInput();
+    FlushInput();
 	SOAPDebugger::Print(1, "\n\nREQUEST:\n");
 
 	if (!Connect())
-		throw SOAPSocketException("Unable to make socket connection");
+		throw SOAPSocketException(SOAPSocketException::CONNECT_FAILED,
+                "Unable to make socket connection");
 	Write(verb);
 	Write(" ");
 
@@ -295,28 +311,10 @@ SOAPHTTPProtocol::StartVerb(const char *verb, const char *path)
 }
 
 void
-SOAPHTTPProtocol::AddAuthorization(const char *type, const SOAPUrl& endpoint)
-{
-	if (!endpoint.User().IsEmpty() || !endpoint.Password().IsEmpty())
-	{
-		SOAPString up = endpoint.User();
-		up.Append(":");
-		up.Append(endpoint.Password());
-		SOAPString enc;
-		SOAPBase64Base::Encode(up, up.Length(), enc);
-
-		up = "Basic ";
-		up.Append(enc);
-		WriteHeader(type, (const char *)up);
-	}
-}
-
-void
 SOAPHTTPProtocol::BeginPost(const char *path)
 {
+
 	StartVerb("POST", path);
-	AddAuthorization("Authorization", m_endpoint);
-	AddAuthorization("Proxy-Authorization", m_proxy);
 }
 
 int
@@ -365,14 +363,15 @@ SOAPHTTPProtocol::GetReply()
 	// HTTP/1.1 200 OK
 	if (ReadLine(buff, sizeof(buff)) == 0)
 	{
-		throw SOAPSocketException("Couldn't read response.");
+		throw SOAPSocketException(SOAPSocketException::READ_FAILED,
+                "Couldn't read response.");
 	}
 
 	const char *vers = sp_strchr(buff, '/');
 	if (vers)
 	{
 		respver += atoi(++vers) * 10;
-		if ((vers = sp_strchr(vers, '.')) != 0)
+		if ((vers = sp_strchr(vers, '.')))
 			respver += atoi(++vers);
 	}
 
@@ -387,7 +386,7 @@ SOAPHTTPProtocol::GetReply()
 	else
 		m_httpmsg = buff;
 
-	for (;;)
+	while (1)
 	{
 		if (ReadLine(buff, sizeof(buff)) == 0)
 			break;
@@ -417,7 +416,7 @@ SOAPHTTPProtocol::GetReply()
 	const char *contype = GetHeader("Content-Type");
 	if (contype)
 	{
-		const char *charset = sp_strstr(contype, "charset=");
+		const char *charset = charset = sp_strstr(contype, "charset=");
 		if (charset)
 		{
 			charset += 8;
@@ -479,12 +478,6 @@ SOAPHTTPProtocol::GetHeader(const char *header) const
 	return 0;
 }
 
-const char *
-SOAPHTTPProtocol::GetContentEncoding() const
-{
-	return GetHeader("Content-Encoding");
-}
-
 int
 SOAPHTTPProtocol::GetContentLength() const
 {
@@ -523,6 +516,13 @@ SOAPHTTPProtocol::GetChunkLength()
 		intValue = intValue * 16 + m;
 	}
 
+    // If this is the last chunk, we must read the final CRLF characters
+    // NOTE -- this will not handle the entire HTTP spec for chunked encoding.
+    if (intValue == 0) {
+        char buf[3];
+        ReadLine(buf, sizeof(buf));
+    }
+
 	SOAPDebugger::Print(1, "\nGetChunkLength: %s = %d\n", hexStg, intValue);
 
 	return intValue;
@@ -531,7 +531,7 @@ SOAPHTTPProtocol::GetChunkLength()
 void
 SOAPHTTPProtocol::Close()
 {
-	SOAPDebugger::Print(5, "SOAPHTTPProtocol::Close()");
+	SOAPDebugger::Print(5, "SOAPHTTPProtocol::Close()\n");
 	m_canread = 0;
 	m_doclose = false;
 	super::Close();
@@ -613,19 +613,23 @@ SOAPHTTPProtocol::Connect()
 			break;
 		case SOAPUrl::https_proto:
 			{
-				delete m_sslsocket;
-				m_sslsocket = 0;
-
+				SOAPSecureSocketImp *sslsocket = 0;
 				if (m_ctx)
-					m_sslsocket = new SOAPSecureSocketImp(*m_ctx, m_cbdata);
+					sslsocket = new SOAPSecureSocketImp(*m_ctx, m_cbdata);
 				else
-					m_sslsocket = new SOAPSecureSocketImp();
+					sslsocket = new SOAPSecureSocketImp();
 
-				if (!m_sslsocket)
+				if (!sslsocket)
 					throw SOAPMemoryException();
-				SOAPProtocolBase::SetSocket(m_sslsocket);
 
-				m_sslsocket->Connect(host, port);
+				SOAPProtocolBase::SetSocket(sslsocket);
+
+				sslsocket->SetTimeout(m_timeout);
+                                // 
+                                // We instruct the socket to connect, but not
+                                // perform the SSL handshake
+                                //
+				sslsocket->ConnectWithoutInitSSL(host, port);
 
 				if (m_httpproxy)
 				{
@@ -638,8 +642,9 @@ SOAPHTTPProtocol::Connect()
 					WriteLine("");
 
 					if (GetReply() != 200)
-						throw SOAPException("Error setting up tunnel through proxy: %s",
-							(const char *)m_httpmsg);
+						throw SOAPException(
+                                "Error setting up tunnel through proxy: %s",
+							    (const char *)m_httpmsg);
 					//
 					// we turn the proxy flag off because at this point
 					// we have a connection which looks like a direct
@@ -647,10 +652,17 @@ SOAPHTTPProtocol::Connect()
 					// fancy with the GET/POST commands.
 					m_httpproxy = false;
 				}
+    
+                                // 
+                                // Now the "CONNECT" message has been sent to the
+                                // proxy, we can do the SSL handshake.
+                                //
+                                sslsocket->InitSSLAfterConnect();
 			}
 			break;
 		default:
-			throw SOAPSocketException("Can only handle HTTP protocols");
+			throw SOAPSocketException(SOAPSocketException::BAD_PROTOCOL,
+                    "Can only handle HTTP protocols");
 		}
 		return IsOpen();
 	}

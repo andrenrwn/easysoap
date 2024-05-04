@@ -16,10 +16,9 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPCGITransport.cpp,v 1.15 2006/11/09 20:53:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPCGITransport.cpp#1 $
  */
-
-
+#include <string>
 #include <easysoap/SOAPCGIServer.h>
 #include <easysoap/SOAPCGITransport.h>
 #include <easysoap/SOAPonHTTP.h>
@@ -28,6 +27,13 @@
 #include <fcntl.h>
 #include <io.h>
 #endif // _WIN32
+
+#define FREAD fread
+#define FWRITE fwrite
+#define FPRINTF fprintf
+#define STDIN stdin
+#define STDOUT stdout
+
 
 USING_EASYSOAP_NAMESPACE
 
@@ -59,7 +65,7 @@ SOAPCGITransport::SOAPCGITransport()
 	m_soapaction = sa;
 	size_t len = m_soapaction.Length();
 	if (len > 0 && m_soapaction[len - 1] == '\"')
-		m_soapaction.Str()[len - 1] = 0;
+		m_soapaction.Length(len - 1);
 }
 
 SOAPCGITransport::~SOAPCGITransport()
@@ -101,28 +107,22 @@ SOAPCGITransport::SetInFile(const char *infile)
 void
 SOAPCGITransport::SetError()
 {
-	fprintf(stdout, "Status: 500 Internal Server Error\r\n");
+	FPRINTF(STDOUT, "Status: 500 Internal Server Error\r\n");
 }
 
-const char *
+const SOAPString& 
 SOAPCGITransport::GetCharset() const
 {
 	return m_charset;
 }
 
-const char *
+const SOAPString&
 SOAPCGITransport::GetContentType() const
 {
 	return m_contentType;
 }
 
-const char *
-SOAPCGITransport::GetContentEncoding() const
-{
-	return m_contentEncoding;
-}
-
-const char *
+const SOAPString&
 SOAPCGITransport::GetSoapAction() const
 {
 	return m_soapaction;
@@ -141,13 +141,22 @@ SOAPCGITransport::Read(char *buffer, size_t buffsize)
 		if (m_infile)
 			read = fread(buffer, 1, buffsize, m_infile);
 		else
-			read = fread(buffer, 1, buffsize, stdin);
+			read = FREAD(buffer, 1, buffsize, STDIN);
 
 		if (m_canread != -1)
 			m_canread -= read;
 
-		if (read > 0 && m_logfile)
-			fwrite(buffer, 1, read, m_logfile);
+		if ( read > 0 )
+		{
+			if ( m_logfile )
+			{
+				fwrite(buffer, 1, read, m_logfile);
+			}
+			else
+			{
+				SOAPDebugger::Write(3, buffer, read);
+			}
+		}
 	}
 
 	return read;
@@ -156,13 +165,24 @@ SOAPCGITransport::Read(char *buffer, size_t buffsize)
 size_t
 SOAPCGITransport::Write(const SOAPMethod&, const char *payload, size_t payloadsize)
 {
-	fprintf(stdout, "SOAPServer: %s/%s\r\n", EASYSOAP_STRING, EASYSOAP_VERSION_STRING);
-	fprintf(stdout, "Content-Length: %u\r\n", (unsigned int)payloadsize);
-	fprintf(stdout, "Content-Type: text/xml; charset=\"UTF-8\"\r\n\r\n");
+	FPRINTF(STDOUT, "SOAPServer: %s/%s\r\n", EASYSOAP_STRING, EASYSOAP_VERSION_STRING);
+	FPRINTF(STDOUT, "Content-Length: %d\r\n", payloadsize);
+	FPRINTF(STDOUT, "Content-Type: text/xml; charset=\"UTF-8\"\r\n\r\n");
 
-	fwrite(payload, 1, payloadsize, stdout);
+	FWRITE((void *)payload, 1, payloadsize, STDOUT);
 
 	return payloadsize;
 }
 
-
+size_t
+SOAPCGITransport::WriteHeaders(long content_length)
+{
+	FPRINTF(STDOUT, "SOAPServer: %s/%s\r\n", EASYSOAP_STRING, EASYSOAP_VERSION_STRING);
+	FPRINTF(STDOUT, "Content-Type: text/xml; charset=\"UTF-8\"\r\n");
+	if ( 0 != content_length )
+	{
+		FPRINTF(STDOUT, "Content-Length: %d\r\n", (int) content_length);
+	}
+	FPRINTF(STDOUT, "\r\n");
+	return content_length;
+}

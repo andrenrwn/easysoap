@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPFault.cpp,v 1.20 2004/06/02 06:33:05 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPFault.cpp#1 $
  */
 
 #ifdef _MSC_VER
@@ -49,72 +49,60 @@ SOAPFault::~SOAPFault()
 }
 
 const SOAPParameter*
-SOAPFault::GetFaultCode() const
+SOAPFault::GetFaultCode(void) const
 {
-	SOAPParameter::Struct::Iterator i = GetStruct().Find(faultcode_attr);
-	if (i)
-		return *i;
-	return 0;
+	return FindParameter(faultcode_attr);
 }
 
 const SOAPParameter*
-SOAPFault::GetFaultString() const
+SOAPFault::GetFaultString(void) const
 {
-	SOAPParameter::Struct::Iterator i = GetStruct().Find(faultstring_attr);
-	if (i)
-		return *i;
-	return 0;
+	return FindParameter(faultstring_attr);
 }
 
 const SOAPParameter*
-SOAPFault::GetFaultActor() const
+SOAPFault::GetFaultActor(void) const
 {
-	SOAPParameter::Struct::Iterator i = GetStruct().Find(faultactor_attr);
-	if (i)
-		return *i;
-	return 0;
+	return FindParameter(faultactor_attr);
 }
 
 const SOAPParameter*
-SOAPFault::GetDetail() const
+SOAPFault::GetDetail(void) const
 {
-	SOAPParameter::Struct::Iterator i = GetStruct().Find(faultdetail_attr);
-	if (i)
-		return *i;
-	return 0;
+	return FindParameter(faultdetail_attr);
 }
 
 bool
 SOAPFault::WriteSOAPPacket(XMLComposer& packet) const
 {
-	const SOAPParameter *p = 0;
+	const SOAPParameter *p;
 
 	packet.StartTag(GetName());
 
 	//
 	// Enforce element order
-	if ((p = GetFaultCode()) != 0)
+	if ((p = GetFaultCode()))
 		p->WriteSOAPPacket(packet);
-	if ((p = GetFaultString()) != 0)
+	if ((p = GetFaultString()))
 		p->WriteSOAPPacket(packet);
-	if ((p = GetFaultActor()) != 0)
+	if ((p = GetFaultActor()))
 		p->WriteSOAPPacket(packet);
-	if ((p = GetDetail()) != 0)
+	if ((p = GetDetail()))
 		p->WriteSOAPPacket(packet);
 
-	SOAPParameter::Struct::Iterator i = GetStruct().Begin();
-	while (i != GetStruct().End())
+	for (SOAPParameter::Params::const_iterator iter = GetParams().begin();
+            iter != GetParams().end(); ++iter)
 	{
-		p = *i++;
+		const SOAPParameter& param = *iter;
 		//
 		// skip elements which have already been output
-		const SOAPQName& name = p->GetName();
+		const SOAPQName& name = param.GetName();
 		if (name == faultcode_attr ||
 			name == faultstring_attr ||
 			name == faultactor_attr ||
 			name == faultdetail_attr)
 			continue;
-		p->WriteSOAPPacket(packet);
+		param.WriteSOAPPacket(packet);
 	}
 
 	packet.EndTag(GetName());
@@ -127,12 +115,12 @@ SOAPFaultException::SOAPFaultException(const SOAPFault& fault)
 {
 		const SOAPParameter *p;
 		m_what = "SOAP Fault";
-		if ((p = fault.GetFaultString()) != 0)
+		if ((p = fault.GetFaultString()))
 		{
 			m_what.Append(": ");
 			m_what.Append(p->GetString());
 		}
-		if ((p = fault.GetFaultActor()) != 0)
+		if ((p = fault.GetFaultActor()))
 		{
 			m_what.Append(": ");
 			m_what.Append(p->GetString());

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPProxy.h,v 1.6 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPProxy.h#1 $
  */
 
 
@@ -79,6 +79,20 @@ public:
 		if (m_deltrans)
 			delete m_transport;
 	}
+
+    void ClearResponse()
+    {
+        m_response.GetBody().GetMethod().Clear();
+        m_response.GetBody().GetFault().Clear();
+    }    
+
+    void Close() {
+
+        if (0 != m_transport) {
+            m_transport->Close();
+        }
+
+    }
 
 	void SetEndpoint(const SOAPUrl& endpoint);
 

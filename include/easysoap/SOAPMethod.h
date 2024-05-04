@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPMethod.h,v 1.5 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPMethod.h#1 $
  */
 
 
@@ -37,11 +37,12 @@ public:
 	SOAPMethod() {}
 	SOAPMethod(const char *name, const char *ns);
 	SOAPMethod(const char *name, const char *ns, const char *soapAction);
-	virtual ~SOAPMethod();
+    SOAPMethod(const SOAPString& name, const SOAPString& ns, const SOAPString& action);
+    virtual ~SOAPMethod();
 
 	size_t GetNumParameters() const
 	{
-		return GetArray().Size();
+		return GetParams().size();
 	}
 
 	const SOAPString& GetNamespace() const
@@ -50,14 +51,15 @@ public:
 	}
 
 	void SetSoapAction(const char *sa);
+	void SetSoapAction(const SOAPString& sa);
 	const SOAPString& GetSoapAction() const
 	{
 		return m_action;
 	}
 
 	bool WriteSOAPPacket(XMLComposer& packet) const;
-private:
 
+private:
 	SOAPString				m_action;
 };
 

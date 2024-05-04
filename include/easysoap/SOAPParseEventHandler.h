@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParseEventHandler.h,v 1.5 2004/06/02 06:33:04 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPParseEventHandler.h#1 $
  */
 
 
@@ -57,7 +57,7 @@ public:
 			const char **attrs) = 0;
 
 	virtual void endElement(
-			SOAPParser& /*parser*/,
+			SOAPParser& parser,
 			const char *name)
 	{
 		endElement(name);
@@ -69,7 +69,7 @@ public:
 	};
 
 	virtual void characterData(
-			SOAPParser& /*parser*/,
+			SOAPParser& parser,
 			const char * str,
 			int len)
 	{

@@ -16,13 +16,14 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPCGIServer.h,v 1.5 2002/07/24 20:57:56 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPCGIServer.h#1 $
  */
 
 #if !defined(AFX_SOAPCGIHANDLER_H__E392FAB3_3022_11D5_B3F3_000000000000__INCLUDED_)
 #define AFX_SOAPCGIHANDLER_H__E392FAB3_3022_11D5_B3F3_000000000000__INCLUDED_
 
 #include <easysoap/SOAPServer.h>
+#include <boost/shared_ptr.hpp>
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -44,6 +45,7 @@ private:
 	SOAPCGIServer(const SOAPCGIServer&);
 	SOAPCGIServer& operator=(const SOAPCGIServer&);
 };
+typedef boost::shared_ptr<SOAPServer> SOAPServerPtr;
 
 END_EASYSOAP_NAMESPACE
 

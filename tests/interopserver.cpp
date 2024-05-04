@@ -33,7 +33,7 @@
 #include "SOAPBuildersHeaderHandler.h"
 
 int
-main()
+main(int argc, const char* argv[], const char *env[])
 {
 	SOAPCGIServer server;
 

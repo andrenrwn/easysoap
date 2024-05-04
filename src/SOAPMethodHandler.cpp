@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPMethodHandler.cpp,v 1.21 2003/06/03 17:30:16 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPMethodHandler.cpp#1 $
  */
 
 
@@ -52,20 +52,18 @@ SOAPMethodHandler::SetMethod(SOAPMethod& method)
 }
 
 SOAPParseEventHandler *
-SOAPMethodHandler::start(SOAPParser&, const char *name, const char **)
+SOAPMethodHandler::start(SOAPParser& parser, const char *name, const char **)
 {
-	m_method->Reset();
-
 	const char *ns = sp_strchr(name, PARSER_NS_SEP[0]);
 	if (ns)
 	{
-		m_method->GetName().GetNamespace() = "";
-		m_method->GetName().GetNamespace().Append(name, ns - name);
-		m_method->GetName().GetName() = ++ns;
+        SOAPString nsstring(name, ns - name);
+		m_method->GetName().GetNamespace() = parser.DeclareString(nsstring);
+		m_method->GetName().GetName() = parser.DeclareString(++ns);
 	}
 	else
 	{
-		m_method->SetName(name);
+		m_method->SetName(parser.DeclareString(name));
 	}
 
 	return this;
@@ -74,8 +72,8 @@ SOAPMethodHandler::start(SOAPParser&, const char *name, const char **)
 SOAPParseEventHandler *
 SOAPMethodHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
-	const char *id = 0;
-	const char *href = 0;
+	SOAPString id;
+	bool is_href = false;
 
 	const char **cattrs = attrs;
 	while (*cattrs)
@@ -90,16 +88,15 @@ SOAPMethodHandler::startElement(SOAPParser& parser, const char *name, const char
 		}
 		else if (sp_strcmp(tag, "href") == 0)
 		{
-			href = val;
+			is_href = true;
 			break;
 		}
 	}
-
-	SOAPParameter *param = &m_method->AddParameter(name);
-
-	if (href)
+	SOAPParameter *param = &m_method->AddParameter(parser.DeclareString(name));
+        
+	if (is_href)
 		parser.SetHRefParam(param);
-	if (id)
+	if (!id.IsEmpty())
 		parser.SetIdParam(id, param);
 
 	m_paramHandler.SetParameter(param);

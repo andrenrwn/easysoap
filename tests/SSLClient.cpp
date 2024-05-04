@@ -19,7 +19,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SSLClient.cpp,v 1.5 2002/06/06 18:44:54 kingmob Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/tests/SSLClient.cpp#1 $
  */
 
 #ifdef _MSC_VER

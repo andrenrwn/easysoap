@@ -3,15 +3,16 @@
 %define prefix /usr
 
 Summary: SOAP Implemented in C++
-Name: EasySoap++
-Version: %{ver}
-Release: %{rel}
-Source: http://prdownloads.sourceforge.net/easysoap/EasySoap++-%{ver}.tar.gz
-Copyright: LGPL
+Name: EasySoap++-0.6.2
+Version: %{version}
+Release: %{release}
+#Source: http://prdownloads.sourceforge.net/easysoap/EasySoap++-%{ver}.tar.gz
+License: LGPL
 URL: http://easysoap.sourceforge.net
 Group: System Environment/Libraries
 Packager: Blaise St-Laurent <blaise@geeky.net>
-Buildroot: /var/tmp/%{name}-root
+Provides: interface(devfs)
+#Buildroot: /var/tmp/%{name}-root
 
 %description
 EasySoap++ is a lightweight SOAP implementation written in C++. It implements
@@ -22,24 +23,26 @@ soap implementations.
 Summary: Libraries, includes and docs for development with EasySoap++
 Requires: %{name} = %{ver}
 Group: Development/Libraries
+Provides: interface(devfs)
 
 %description devel
-<insert description here>
+Include files for easy EasySoap++0.6.2
 
 %prep
 rm -rf $RPM_BUILD_ROOT
+%setup -D -T
 
-%setup
 %build
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix}
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix} \
+--with-expat=%{_topdir}/devfs/opt/expat250 \
+--with-openssl=%{_topdir}/devfs/usr
 make
 
 %install
-make prefix=${RPM_BUILD_ROOT}%{prefix} install
+make prefix=${RPM_BUILD_ROOT}%{prefix} TOPDIR=%{_topdir} install
 
 %post
 ldconfig
-
 
 %postun
 ldconfig
@@ -49,51 +52,12 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files
 %defattr(-,root,root)
-%{prefix}/lib/libeasysoap.so*
+%doc AUTHORS ChangeLog COPYING
+%{_libdir}/libeasysoap.so*
+%{_libdir}/libeasysoap-0.6.2.so
 
 %files devel
 %defattr(-,root,root)
-%{prefix}/lib/libeasysoap.a
-%{prefix}/lib/libeasysoap.la
-%{prefix}/include/easysoap/es_comp.h
-%{prefix}/include/easysoap/es_conf.h
-%{prefix}/include/easysoap/es_config.h
-%{prefix}/include/easysoap/es_msvc.h
-%{prefix}/include/easysoap/es_mwerks.h
-%{prefix}/include/easysoap/SOAPArray.h
-%{prefix}/include/easysoap/SOAPBase64.h
-%{prefix}/include/easysoap/SOAPBody.h
-%{prefix}/include/easysoap/SOAPCGIServer.h
-%{prefix}/include/easysoap/SOAPCGITransport.h
-%{prefix}/include/easysoap/SOAPDebugger.h
-%{prefix}/include/easysoap/SOAPDispatchHandler.h
-%{prefix}/include/easysoap/SOAPEnvelope.h
-%{prefix}/include/easysoap/SOAPException.h
-%{prefix}/include/easysoap/SOAPFault.h
-%{prefix}/include/easysoap/SOAP.h
-%{prefix}/include/easysoap/SOAPHashMap.h
-%{prefix}/include/easysoap/SOAPHeader.h
-%{prefix}/include/easysoap/SOAPMethod.h
-%{prefix}/include/easysoap/SOAPNamespaces.h
-%{prefix}/include/easysoap/SOAPonHTTP.h
-%{prefix}/include/easysoap/SOAPParameter.h
-%{prefix}/include/easysoap/SOAPParseEventHandler.h
-%{prefix}/include/easysoap/SOAPParse.h
-%{prefix}/include/easysoap/SOAPPool.h
-%{prefix}/include/easysoap/SOAPProxy.h
-%{prefix}/include/easysoap/SOAPQName.h
-%{prefix}/include/easysoap/SOAPResponse.h
-%{prefix}/include/easysoap/SOAPServerDispatch.h
-%{prefix}/include/easysoap/SOAPServer.h
-%{prefix}/include/easysoap/SOAPSocket.h
-%{prefix}/include/easysoap/SOAPSSLContext.h
-%{prefix}/include/easysoap/SOAPStack.h
-%{prefix}/include/easysoap/SOAPSTL.h
-%{prefix}/include/easysoap/SOAPString.h
-%{prefix}/include/easysoap/SOAPTransport.h
-%{prefix}/include/easysoap/SOAPTypeTraits.h
-%{prefix}/include/easysoap/SOAPUrl.h
-%{prefix}/include/easysoap/SOAPUtil.h
-%{prefix}/include/easysoap/XMLComposer.h
-%{prefix}/include/easysoap/XMLParser.h
-
+%{_libdir}/libeasysoap.a
+%{_libdir}/libeasysoap.la
+%{_includedir}/easysoap/*.h

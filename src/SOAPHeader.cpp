@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPHeader.cpp,v 1.14 2001/12/20 22:38:19 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPHeader.cpp#1 $
  */
 
 
@@ -35,44 +35,35 @@ USING_EASYSOAP_NAMESPACE
 
 const char *SOAPHeader::actorNext = "http://schemas.xmlsoap.org/soap/actor/next";
 
-SOAPHeader::SOAPHeader()
+SOAPHeader::SOAPHeader(void)
 : m_outtasync(false)
 {
 }
 
-SOAPHeader::~SOAPHeader()
+SOAPHeader::~SOAPHeader(void)
 {
-	Reset();
+	for (Headers::iterator i = m_headers.begin(); i != m_headers.end(); ++i)
+	{
+		delete *i;
+	}
 }
 
 SOAPParameter&
-SOAPHeader::AddHeader()
+SOAPHeader::AddHeader(void)
 {
 	m_outtasync = true;
-	return *m_headers.Add(m_pool.Get());
+    SOAPParameter *ret = new SOAPParameter();
+    m_headers.push_back(ret);
+	return *ret;
 }
 
 SOAPParameter&
 SOAPHeader::AddHeader(const SOAPQName& name)
 {
-	SOAPParameter *p = m_pool.Get();
-	p->SetName(name);
+	SOAPParameter *p = new SOAPParameter(name);
 	m_headermap[name] = p;
-	return *m_headers.Add(p);
-}
-
-void
-SOAPHeader::Reset()
-{
-	for (Headers::Iterator i = m_headers.Begin(); i != m_headers.End(); ++i)
-	{
-		(*i)->Reset();
-		m_pool.Return(*i);
-	}
-	m_headers.Resize(0);
-
-	m_headermap.Clear();
-	m_outtasync = false;
+    m_headers.push_back(p);
+	return *p;
 }
 
 const SOAPParameter&
@@ -107,19 +98,22 @@ void
 SOAPHeader::Sync() const
 {
 	m_headermap.Clear();
-	for (Headers::ConstIterator i = m_headers.Begin(); i != m_headers.End(); ++i)
+	for (Headers::const_iterator i = m_headers.begin();
+            i != m_headers.end(); ++i)
+    {
 		m_headermap[(*i)->GetName()] = (*i);
+    }
 	m_outtasync = false;
 }
 
 bool
 SOAPHeader::WriteSOAPPacket(XMLComposer& packet) const
 {
-	if (m_headers.Size() > 0)
+	if (!m_headers.empty())
 	{
 		packet.StartTag(SOAPEnv::Header);
 
-		for (Headers::ConstIterator i = m_headers.Begin(); i != m_headers.End(); ++i)
+		for (Headers::const_iterator i = m_headers.begin(); i != m_headers.end(); ++i)
 			(*i)->WriteSOAPPacket(packet);
 
 		packet.EndTag(SOAPEnv::Header);

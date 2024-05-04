@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPBody.cpp,v 1.15 2002/05/31 07:33:11 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPBody.cpp#1 $
  */
 
 
@@ -35,35 +35,26 @@ USING_EASYSOAP_NAMESPACE
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SOAPBody::SOAPBody()
+SOAPBody::SOAPBody() :
+    m_isfault(false)
 {
-	m_isfault = false;
 }
 
 SOAPBody::~SOAPBody()
 {
-	Reset();
-}
-
-void
-SOAPBody::Reset()
-{
-	m_method.Reset();
-	m_fault.Reset();
-	m_isfault = false;
-	for (Array::Iterator i = m_params.Begin(); i != m_params.End(); ++i)
+	for (ParamList::iterator iter = m_params.begin();
+            iter != m_params.end(); ++iter)
 	{
-		(*i)->Reset();
-		m_pool.Return(*i);
+		delete *iter;
 	}
-	m_params.Resize(0);
 }
 
 SOAPParameter&
 SOAPBody::AddParameter()
 {
-	SOAPParameter *ret = m_pool.Get();
-	return *m_params.Add(ret);
+    SOAPParameter* p = new SOAPParameter();
+    m_params.push_back(p);
+	return *p;
 }
 
 bool
@@ -76,8 +67,9 @@ SOAPBody::WriteSOAPPacket(XMLComposer& packet) const
 	else
 	{
 		m_method.WriteSOAPPacket(packet);
-		for (size_t i = 0; i < m_params.Size(); ++i)
-			m_params[i]->WriteSOAPPacket(packet);
+		for (ParamList::const_iterator iter = m_params.begin();
+                iter != m_params.end(); ++iter)
+			(*iter)->WriteSOAPPacket(packet);
 	}
 
 	packet.EndTag(SOAPEnv::Body);

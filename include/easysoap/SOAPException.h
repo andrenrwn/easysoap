@@ -16,16 +16,18 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPException.h,v 1.5 2002/10/09 17:58:24 kingmob Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPException.h#1 $
  */
 
 
 #if !defined(AFX_SOAPEXCEPTION_H__18828772_7674_41DA_A39A_14D5CCB77E75__INCLUDED_)
 #define AFX_SOAPEXCEPTION_H__18828772_7674_41DA_A39A_14D5CCB77E75__INCLUDED_
 
+#if defined(_MSC_VER)
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
+#endif // defined(_MSC_VER)
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -35,7 +37,11 @@
 BEGIN_EASYSOAP_NAMESPACE
 
 /**
-*
+* SOAPExceptions have a design flaw in that they take a formatted string and
+* variadic inputs to create the class. When creating a SOAPException with a
+* a possibly user inputted string, the caller MUST call the constructor like
+* this: SOAPException("%s", <string with potential user input>)
+* This applies to subclasses of SOAPExceptions as well.
 */
 class EASYSOAP_EXPORT SOAPException  
 {
@@ -83,9 +89,26 @@ public:
 class EASYSOAP_EXPORT SOAPSocketException : public SOAPException
 {
 public:
-	SOAPSocketException(const SOAPString& what)
-		: SOAPException(what) {}
-	SOAPSocketException(const char *fmt, ...)
+    enum Reason
+    {
+        UNKNOWN,
+        BAD_ADDRESS,
+        BAD_PROTOCOL,
+        NO_SOCKET,
+        BIND_FAILED,
+        CONNECT_TIMED_OUT,
+        CONNECT_FAILED,
+        PEER_UNREACHABLE,
+        CONNECTION_REFUSED,
+        READ_FAILED,
+        WRITE_FAILED,
+        PROTOCOL_ERROR
+    };
+    
+	SOAPSocketException(Reason reason, const SOAPString& what)
+		: SOAPException(what), m_reason(reason) {}
+	SOAPSocketException(Reason reason, const char *fmt, ...)
+        : m_reason(reason)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -93,6 +116,11 @@ public:
 		va_end(args);
 	}
 	~SOAPSocketException() {}
+
+    Reason getReason(void) { return m_reason; }
+
+    private:
+        Reason m_reason;
 };
 
 class EASYSOAP_EXPORT SOAPSSLException : public SOAPException

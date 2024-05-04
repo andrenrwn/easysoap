@@ -733,12 +733,6 @@ TestEchoString(SOAPProxy& proxy, const Endpoint& e)
 }
 
 void
-TestEchoString_null(SOAPProxy& proxy, const Endpoint& e)
-{
-	TestEchoString(proxy, e, 0);
-}
-
-void
 TestEchoString_newlines(SOAPProxy& proxy, const Endpoint& e)
 {
 	TestEchoString(proxy, e, "This\ris\na\r\ntest\tstring\n\rfrom EasySoap++");
@@ -815,7 +809,7 @@ TestEchoBooleanJunk(SOAPProxy& proxy, const Endpoint& e)
 {
 	SOAPMethod method;
 	SetupMethod(method, "echoBoolean", e);
-	(method.AddParameter("inputBoolean") << (const char *)"junk").SetType("boolean", XMLSchema2001::xsd);
+	(method.AddParameter("inputBoolean") << "junk").SetType("boolean", XMLSchema2001::xsd);
 
 	const SOAPResponse& response = proxy.Execute(method);
 
@@ -923,7 +917,7 @@ TestEcho2DStringArray(SOAPProxy& proxy, const Endpoint& e)
 	for (size_t i = 0; i < rows; ++i)
 		for (size_t j = 0; j < cols; ++j)
 		{
-			snprintf(buff, sizeof(buff), "%zd,%zd", i, j);
+			snprintf(buff, sizeof(buff), "%d,%d", i, j);
 			twod[i][j] = buff;
 		}
 
@@ -992,16 +986,15 @@ TestEchoBase64(SOAPProxy& proxy, const Endpoint& e)
 	int size = rand() % 501 + 500;
 	inputBinary.Resize(size);
 	for (int i = 0; i < size; ++i)
-		inputBinary[i] = (char)rand();
+		inputBinary[i] = rand();
 
 	SOAPMethod method;
-	SOAPBase64 inbase64(inputBinary);
 	SetupMethod(method, "echoBase64", e);
-	method.AddParameter("inputBase64") << inbase64;
+	method.AddParameter("inputBase64") << SOAPBase64(inputBinary);
 	const SOAPResponse& response = proxy.Execute(method);
 
-	SOAPBase64 outbase64(outputBinary);
-	response.GetReturnValue() >> outbase64;
+	SOAPBase64 base64(outputBinary);
+	response.GetReturnValue() >> base64;
 
 	if (inputBinary != outputBinary)
 		throw SOAPException("Values are not equal");
@@ -1145,7 +1138,7 @@ TestBogusMethod(SOAPProxy& proxy, const Endpoint& e)
 }
 
 void
-TestBogusNamespace(SOAPProxy& proxy, const Endpoint&)
+TestBogusNamespace(SOAPProxy& proxy, const Endpoint& e)
 {
 	SOAPMethod method("echoVoid", "http://bogusns.com/", "http://bogusns.com/");
 	proxy.Execute(method);
@@ -1220,16 +1213,15 @@ TestEchoHexBinary(SOAPProxy& proxy, const Endpoint& e)
 	int size = rand() % 501 + 500;
 	inputBinary.Resize(size);
 	for (int i = 0; i < size; ++i)
-		inputBinary[i] = (char)rand();
+		inputBinary[i] = rand();
 
 	SOAPMethod method;
-	SOAPHex inhex(inputBinary);
 	SetupMethod(method, "echoHexBinary", e);
-	method.AddParameter("inputHexBinary") << inhex;
+	method.AddParameter("inputHexBinary") << SOAPHex(inputBinary);
 	const SOAPResponse& response = proxy.Execute(method);
 
-	SOAPHex outhex(outputBinary);
-	response.GetReturnValue() >> outhex;
+	SOAPHex hex(outputBinary);
+	response.GetReturnValue() >> hex;
 
 	if (inputBinary != outputBinary)
 		throw SOAPException("Values are not equal");
@@ -1288,7 +1280,7 @@ BeginEndpointTesting(const Endpoint& e, TestType test)
 }
 
 void
-EndEndpointTesting(const Endpoint&)
+EndEndpointTesting(const Endpoint& e)
 {
 	if (cgimode)
 	{
@@ -1329,7 +1321,7 @@ BeginTest(const Endpoint& e, const char *testname)
 }
 
 void
-EndTest(const Endpoint&, const SOAPString& type, const SOAPString& msg)
+EndTest(const Endpoint& e, const SOAPString& type, const SOAPString& msg)
 {
 	if (cgimode)
 	{
@@ -1515,7 +1507,6 @@ TestInterop(const Endpoint& e, TestType test)
 	TestForFault(proxy, e, "echoFloat_Junk1",			TestEchoFloat_Junk1);
 	TestForPass(proxy, e, "echoFloat_Junk2",			TestEchoFloat_Junk2);
 	TestForPass(proxy, e, "echoString",					TestEchoString);
-	TestForPass(proxy, e, "echoString_null",			TestEchoString_null);
 	TestForPass(proxy, e, "echoString_newlines",		TestEchoString_newlines);
 	TestForPass(proxy, e, "echoStruct",					TestEchoStruct);
 	TestForPass(proxy, e, "echoIntegerArray",			TestEchoIntegerArray);
@@ -1639,9 +1630,7 @@ hexdecode(char *str)
 		if (*w == '%')
 		{
 			++w;
-			char a = *w++;
-			char b = *w++;
-			*s++ = char((hexval(a) << 4) | hexval(b));
+			*s++ = (hexval(*w++) << 4) | hexval(*w++);
 		}
 		else
 			*s++ = *w++;
@@ -1659,9 +1648,9 @@ ParseCGIQuery(SOAPHashMap<SOAPString,SOAPString>& jar, const char *str)
 	{
 		char *t = n;
 		char *v;
-		if ((n = sp_strchr(n, '&')) != 0)
+		if (n = sp_strchr(n, '&'))
 			*n++ = 0;
-		if ((v = sp_strchr(t, '=')) != 0)
+		if (v = sp_strchr(t, '='))
 			*v++ = 0;
 		jar[hexdecode(t)] = hexdecode(v);
 	}
@@ -1824,8 +1813,6 @@ main(int argc, char* argv[])
 				break;
 			case round2c:
 				GetRound2Endpoints(endpoints, "GroupC");
-				break;
-			default:
 				break;
 			}
 		}

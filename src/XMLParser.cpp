@@ -16,17 +16,17 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: XMLParser.cpp,v 1.13 2006/11/09 07:24:45 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/XMLParser.cpp#1 $
  */
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
-#include <easysoap/XMLParser.h>
 #include <expat.h>
+#include <easysoap/XMLParser.h>
 
-#define EXPAT_VER(a,b,c) (((((a)*1000)+(b))*1000)+(c))
+#define EXPAT_VER(a,b,c) (((((a)*1000)+(b))*1000)+ (c))
 #define EXPAT_VERSION EXPAT_VER(XML_MAJOR_VERSION,XML_MINOR_VERSION,XML_MICRO_VERSION)
 
 //////////////////////////////////////////////////////////////////////
@@ -34,6 +34,14 @@
 //////////////////////////////////////////////////////////////////////
 
 USING_EASYSOAP_NAMESPACE
+
+/*
+ * A static file variable which will be used to determine if DTD usage is
+ * allowed. This is a shared variable across threads, but is checked before
+ * the start of each SOAP request so we shouldn't have race condition issues.
+ */
+static
+bool parse_dtds = false;
 
 XMLParser::XMLParser()
 {
@@ -83,7 +91,25 @@ XMLParser::InitParser(const char *encoding)
 	XML_SetEndNamespaceDeclHandler(m_parser,
 			XMLParser::_endNamespace);
 
+	if (parse_dtds == false)
+	{
+		XML_SetStartDoctypeDeclHandler(m_parser,
+				XMLParser::_startDoctypeDeclHandler);
+	}
+
 	XML_SetUserData(m_parser, this);
+}
+
+void
+XMLParser::setDTDProcessingState(bool allow)
+{
+	parse_dtds = allow;
+}
+
+bool
+XMLParser::getDTDProcessingState()
+{
+	return parse_dtds;
 }
 
 void *
@@ -172,6 +198,21 @@ XMLParser::_endNamespace(void *userData, const XML_Char *prefix)
 {
 	XMLParser *parser = (XMLParser *)userData;
 	parser->endNamespace(prefix);
+}
+
+struct XML_ParserStruct*
+XMLParser::getParserStruct()
+{
+	return m_parser;
+}
+
+void
+XMLParser::_startDoctypeDeclHandler(void *userData, const XML_Char * doctypeName,
+									const XML_Char * sysid, const XML_Char * pubid,
+									int has_internal_subset)
+{
+	XMLParser *parser = (XMLParser *)userData;
+	XML_StopParser(parser->getParserStruct(), XML_FALSE);
 }
 
 

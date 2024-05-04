@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPServerDispatch.h,v 1.5 2002/05/20 16:56:11 jgorlick Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPServerDispatch.h#1 $
  */
 
 
@@ -24,6 +24,7 @@
 #define AFX_SOAPSERVERDISPATCH_H__F7015C4A_8459_4090_ABD1_FB3EAB144B39__INCLUDED_
 
 #include <easysoap/SOAP.h>
+#include <boost/shared_ptr.hpp>
 
 BEGIN_EASYSOAP_NAMESPACE
 
@@ -44,12 +45,17 @@ public:
 
 	//
 	// returns false if an error occurred
-	bool Handle(SOAPServerTransport& transport);
+	virtual bool Handle(SOAPServerTransportPtr transport, XMLComposerPtr composer = XMLComposerPtr());
+	const char *GetMethodNS (void) {return m_request->GetBody().GetMethod().GetName().GetNamespace();};
+	const char *GetMethodName (void) {return m_request->GetBody().GetMethod().GetName().GetName();};
 
 protected:
 	virtual bool	HandleRequest(SOAPEnvelope& request, SOAPResponse& response);
 	virtual void	HandleHeaders(SOAPEnvelope& request, SOAPResponse& response);
 	virtual void	HandleFault(SOAPFault&) {}
+	void WriteFault(const SOAPFault& fault, SOAPServerTransport& transport, boost::shared_ptr<XMLComposer> writer);
+
+	virtual void parse(SOAPEnvelopePtr request, SOAPServerTransportPtr trans);
 
 private:
 
@@ -60,14 +66,15 @@ private:
 	typedef SOAPArray<SOAPDispatchHandlerInterface*> Handlers;
 	typedef SOAPArray<SOAPHeaderHandlerInterface*> HeaderHandlers;
 
-	Handlers			m_handlers;
-	HeaderHandlers		m_headerHandlers;
-	SOAPServerTransport	*m_transport;
-	SOAPResponse		m_response;
-	SOAPEnvelope		m_request;
-	XMLComposer			m_writer;
-	SOAPParser			m_parser;
-	SOAPString			m_respname;
+	Handlers m_handlers;
+	HeaderHandlers m_headerHandlers;
+	SOAPServerTransportPtr m_transport;
+	SOAPResponsePtr m_response;
+	SOAPEnvelopePtr m_request;
+	XMLComposerPtr m_writer;
+	XMLComposerPtr m_composer;
+	SOAPParser m_parser;
+	bool m_preparsed;
 };
 
 END_EASYSOAP_NAMESPACE

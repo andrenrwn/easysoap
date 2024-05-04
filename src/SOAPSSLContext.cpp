@@ -16,9 +16,12 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPSSLContext.cpp,v 1.13 2005/09/24 07:24:24 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPSSLContext.cpp#1 $
  */
 
+#include <pthread.h>
+
+#include <string>
 #include <easysoap/SOAP.h>
 #include <easysoap/SOAPDebugger.h>
 #include <easysoap/SOAPException.h>
@@ -33,7 +36,11 @@ extern "C" {
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
-}
+};
+
+
+static pthread_mutex_t openSslInitMutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 //
 // Initialize OpenSSL
@@ -48,6 +55,7 @@ class OpenSSLinit
 
 	OpenSSLinit()
 	{
+
 		SSL_library_init();
 		ERR_load_crypto_strings();
 		SSL_load_error_strings();
@@ -97,18 +105,23 @@ SOAPSSLContext::SOAPSSLContext(MethodType methodType)
 	, m_verifyserver(true)
         , m_verifycb(0)
 {
+    pthread_mutex_lock(&openSslInitMutex);
 	sslinit();
+    pthread_mutex_unlock(&openSslInitMutex);
 	m_ctx = SSL_CTX_new(getMethod(methodType));
 	if (!m_ctx)
 		throw SOAPMemoryException();
 }
 
 SOAPSSLContext::SOAPSSLContext(const char* cafile, MethodType methodType) 
-		: m_ctx(0)
+		: m_cafile(cafile)
+		, m_ctx(0)
 	, m_verifyserver(true)
         , m_verifycb(0)
 {
+    pthread_mutex_lock(&openSslInitMutex);
 	sslinit();
+    pthread_mutex_unlock(&openSslInitMutex);
 	m_ctx = SSL_CTX_new(getMethod(methodType));
 	if (!m_ctx)
 		throw SOAPMemoryException();
@@ -116,11 +129,17 @@ SOAPSSLContext::SOAPSSLContext(const char* cafile, MethodType methodType)
 }
 
 SOAPSSLContext::SOAPSSLContext(const char* certfile, const char* keyfile, const char* password, const char* cafile, MethodType methodType)
-                : m_ctx(0)
+                : m_cafile(cafile)
+                , m_certfile(certfile)
+                , m_keyfile(keyfile)
+                , m_password(password)
+                , m_ctx(0)
         , m_verifyserver(true)
         , m_verifycb(0)
 {
-        sslinit();
+    pthread_mutex_lock(&openSslInitMutex);
+    sslinit();
+    pthread_mutex_unlock(&openSslInitMutex);
 	m_ctx = SSL_CTX_new(getMethod(methodType));
         if (!m_ctx)
                 throw SOAPMemoryException();
@@ -136,9 +155,9 @@ SOAPSSLContext::sslinit()
 		static OpenSSLinit __opensslinit;
 }
 
-SSL_METHOD* SOAPSSLContext::getMethod(MethodType methodType)
+const SSL_METHOD* SOAPSSLContext::getMethod(MethodType methodType)
 {
-        SSL_METHOD* method = 0;
+        const SSL_METHOD* method = 0;
 
         switch(methodType)
         {
@@ -182,13 +201,11 @@ void SOAPSSLContext::SetCAInfo(const char* cafile)
 
 	SSL_CTX_set_verify(m_ctx, SSL_VERIFY_PEER, NULL);
 
-	if ((retcode = SSL_CTX_load_verify_locations(m_ctx, cafile, 0)) != 1)
+	if ((retcode = SSL_CTX_load_verify_locations(m_ctx, m_cafile.Str(), 0)) != 1)
 			HandleError("Error loading the certificate authority file: %s\n", retcode);
 }
 
-void SOAPSSLContext::SetCertInfo(const char* certfile,
-	const char* keyfile,
-	const char* password)
+void SOAPSSLContext::SetCertInfo(const char* certfile, const char* keyfile, const char* password)
 {
 	int retcode;
 
@@ -199,20 +216,20 @@ void SOAPSSLContext::SetCertInfo(const char* certfile,
 	SSL_CTX_set_tmp_rsa_callback(m_ctx, &OpenSSLinit::tmpRSAkey_cb);
 		
 	// set the certificate file.
-	if ((retcode = SSL_CTX_use_certificate_chain_file(m_ctx, certfile))!= 1)
+	if ((retcode = SSL_CTX_use_certificate_chain_file(m_ctx, m_certfile.Str()))!= 1)
 			HandleError("Error trying to use the certificate file: %s\n", retcode);
 
 	// now set our password callback function...
 	SSL_CTX_set_default_passwd_cb(m_ctx, &password_cb);
 	// setup the callback userdata.
-	SSL_CTX_set_default_passwd_cb_userdata(m_ctx, (void *)password);
+	SSL_CTX_set_default_passwd_cb_userdata(m_ctx, this);
 	
 	// call the right function based on the certificate type.
 	if (type == DSA_cert) {
-		if ((retcode = SSL_CTX_use_PrivateKey_file(m_ctx, keyfile, SSL_FILETYPE_PEM)) != 1) 
+		if ((retcode = SSL_CTX_use_PrivateKey_file(m_ctx, m_keyfile.Str(), SSL_FILETYPE_PEM)) != 1) 
 			HandleError("Error trying to use the private key from file : %s\n", retcode);
 	} else {
-		if ((retcode = SSL_CTX_use_RSAPrivateKey_file(m_ctx, keyfile, SSL_FILETYPE_PEM)) != 1)
+		if ((retcode = SSL_CTX_use_RSAPrivateKey_file(m_ctx, m_keyfile.Str(), SSL_FILETYPE_PEM)) != 1)
 			HandleError("Error trying to use the RSA private key from file: %s\n", retcode);
 	}
 
@@ -223,7 +240,7 @@ void SOAPSSLContext::SetCertInfo(const char* certfile,
 
 int SOAPSSLContext::password_cb(char* buf, int size, int rwflag, void *userdata) 
 {
-		SOAPString password = (const char *)userdata;
+		SOAPString password = ((SOAPSSLContext*)userdata)->m_password;
 		if ((unsigned int)size < password.Length())
 				throw SOAPMemoryException();
 		
@@ -243,7 +260,7 @@ void SOAPSSLContext::HandleError(const char* context, int retcode)
 #endif // OPENSSL_VERSION_NUMBER
 
 	msg[sizeof(msg) - 1] = 0;
-	throw SOAPSocketException(context, msg);
+	throw SOAPSocketException(SOAPSocketException::UNKNOWN, context, msg);
 		
 }
 

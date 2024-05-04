@@ -6,18 +6,52 @@ dnl
 AC_INIT(Makefile.am)
 AC_CONFIG_AUX_DIR(conftools)
 
-AM_INIT_AUTOMAKE(EasySoap++, 0.8.0)
+AM_INIT_AUTOMAKE(EasySoap++, 0.6.2)
 AM_CONFIG_HEADER(include/easysoap/es_config.h)
 
 dnl
 dnl Include other macros we need...
 sinclude(conftools/ac_cxx_namespaces.m4)
-sinclude(conftools/ac_cxx_typename.m4)
 sinclude(conftools/ac_cxx_template_keyword_qualifier.m4)
 sinclude(conftools/ac_cxx_partial_specialization.m4)
 sinclude(conftools/peti_with_dmalloc.m4)
 
-AC_CYGWIN
+AC_ARG_WITH([expat],
+    AS_HELP_STRING([--with-expat=[DIR]], [Use specified expat directory]),
+    [
+    CPPFLAGS="$CPPFLAGS -I$withval/include"
+    LDFLAGS="$LDFLAGS -L$withval/lib"])
+
+AC_ARG_WITH([openssl],
+    AS_HELP_STRING([--with-openssl=[DIR]], [Use specified openssl directory]),
+    [
+    CFLAGS="$CFLAGS -DOPENSSL_NO_KRB5 -I$withval/include"
+    CPPFLAGS="$CPPFLAGS -DOPENSSL_NO_KRB5 -I$withval/include"
+    LDFLAGS="$LDFLAGS -L$withval"])
+
+AC_ARG_WITH([fastcgi],
+    AS_HELP_STRING([--with-fastcgi=[DIR]], [Use specified fastcgi directory]),
+    [
+    CFLAGS="$CFLAGS -DFASTCGI -I$withval/include"
+    CPPFLAGS="$CPPFLAGS -DFASTCGI -I$withval/include"
+    LDFLAGS="$LDFLAGS -L$withval/libfcgi"])
+
+AC_ARG_WITH([extension],
+    AS_HELP_STRING([--with-extension=[ext]], [Use specified extension to output library name]),
+    [
+    LIB_EXTENSION="$withval"])
+
+AC_ARG_WITH([dmalloc],
+    AS_HELP_STRING([--with-dmalloc=[ARG]], [Compile with dmalloc library]),
+    [
+    CFLAGS="$CFLAGS -DFASTCGI -I$withval/include"
+    CPPFLAGS="$CPPFLAGS -DDEBUG_DMALLOC -DDMALLOC_FUNC_CHECK -I$withval/include"
+    LDFLAGS="$LDFLAGS -L$withval/lib"
+    LIBS="-ldmalloc $LIBS"])
+
+
+AC_CANONICAL_HOST
+dnl AC_CYGWIN
 
 dnl Checks for programs.
 AC_PROG_CXX
@@ -31,15 +65,15 @@ AM_PROG_LIBTOOL
 AC_PATH_PROG(MAKEDEPEND, makedepend, $TRUE)
 
 dnl Check C++ compiler characteristics
-AC_CXX_NAMESPACES
-AC_CXX_TEMPLATE_KEYWORD_QUALIFIER
-AC_CXX_PARTIAL_SPECIALIZATION
-AC_CXX_TYPENAME
+dnl AC_CXX_NAMESPACES
+dnl AC_CXX_TEMPLATE_KEYWORD_QUALIFIER
+dnl AC_CXX_PARTIAL_SPECIALIZATION
 
 dnl Checks for libraries.
+CFLAGS="$CFLAGS -I../usr/include"
+CPPFLAGS="$CPPFLAGS -I../usr/include"
+LDFLAGS="$LDFLAGS -L../usr/lib"
 AC_CHECK_LIB(gcc, main)
-AC_CHECK_LIB(gcc_s, main)
-AC_CHECK_LIB(m, isnan)
 AC_CHECK_LIB(stdc++, main)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(socket, send)
@@ -51,27 +85,21 @@ AC_CHECK_LIB(expat, XML_Parse,,
 AC_CHECK_HEADER(expat.h,,
 	AC_MSG_ERROR("Could not find expat.h"))
 
-dnl Check for zlib
-AC_ARG_WITH(zlib,[
-AC_HELP_STRING([--with-zlib=PATH], [search for zlib in PATH])
-AC_HELP_STRING([--without-zlib], [disable use of zlib])],[
-  case "$withval" in
-  no)
-    AC_MSG_WARN([zlib disabled]) ;;
-  *)
-    if test -d "$withval"; then
-      CPPFLAGS="$CPPFLAGS -I$withval/include"
-      LDFLAGS="$LDFLAGS -L$withval/lib"
-    fi
-
-    AC_CHECK_HEADER(zlib.h,[
-      AC_CHECK_LIB(z, gzread,[
-        AC_DEFINE(HAVE_LIBZ, 1, [If zlib is available])
-      ],),
-    ])
-    ;;
-  esac
-])
+AC_TRY_RUN([
+#include <expat.h>
+#define EXPAT_VER(a,b,c) (((((a)*1000)+(b))*1000)+ (c))
+int main(int argc, char* argv[]) {
+    printf("Found expat version %d.%d.%d\n", XML_MAJOR_VERSION, XML_MINOR_VERSION, XML_MICRO_VERSION);
+    if (EXPAT_VER(XML_MAJOR_VERSION, XML_MINOR_VERSION, XML_MICRO_VERSION) >=
+        EXPAT_VER(2,2,0)) {
+        return 0;
+    }
+    return 1;
+}
+],
+[ echo "Expat version met minimum requirement of 2.2.0" ],
+[ AC_MSG_ERROR(Expat version 2.2.0 or higher is required (CVE-2012-6702)) ]
+)
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
@@ -93,7 +121,6 @@ AC_CHECK_HEADERS( \
 	resolv.h \
 	stdlib.h \
 	string.h \
-	strings.h \
 	unistd.h \
 	arpa/inet.h \
 	arpa/nameser.h \
@@ -127,11 +154,9 @@ AC_CHECK_FUNCS( \
 	socket \
 	strdup \
 	strtol \
-	strtoul \
 	snprintf \
 	strerror \
-	stricmp \
-	strcasecmp \
+	strerror_r \
 )
 
 AC_OUTPUT( \
@@ -141,8 +166,6 @@ AC_OUTPUT( \
 	proj/win32/BCB5/Makefile \
 	proj/win32/MSVC6/Makefile \
 	proj/win32/MSVC7/Makefile \
-	proj/win32/MSVC7.1/Makefile \
-	proj/win32/MSVC8.0/Makefile \
 	include/Makefile \
 	include/easysoap/Makefile \
 	src/Makefile \
@@ -151,4 +174,3 @@ AC_OUTPUT( \
 	tests/Makefile \
 	google/Makefile \
 )
-

@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPStructHandler.cpp,v 1.15 2003/06/03 17:30:18 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/src/SOAPStructHandler.cpp#1 $
  */
 
 
@@ -55,8 +55,8 @@ SOAPStructHandler::start(SOAPParser&, const char *, const char **)
 SOAPParseEventHandler *
 SOAPStructHandler::startElement(SOAPParser& parser, const char *name, const char **attrs)
 {
-	const char *id = 0;
-	const char *href = 0;
+	SOAPString id;
+	bool is_href = false;
 
 	const char **cattrs = attrs;
 	while (*cattrs)
@@ -71,16 +71,16 @@ SOAPStructHandler::startElement(SOAPParser& parser, const char *name, const char
 		}
 		else if (sp_strcmp(tag, "href") == 0)
 		{
-			href = val;
+			is_href = true;
 			break;
 		}
 	}
 
-	SOAPParameter *param = &m_param->AddParameter(name);
+	SOAPParameter *param = &m_param->AddParameter(parser.DeclareString(name));
 
-	if (href)
+	if (is_href)
 		parser.SetHRefParam(param);
-	if (id)
+	if (!id.IsEmpty())
 		parser.SetIdParam(id, param);
 
 	m_paramHandler->SetParameter(param);

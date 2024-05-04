@@ -1,17 +1,8 @@
-Release 0.8
-=====================================
-
-1) Lots of bug fixes over the years since the last release.  These fixes
-   were in CVS but never released.  Now they are.
-2) Compiles against gcc 4.1.1 and Visual C++ 8.0/Visual Studio 2005.
-3) Needs Expat XML at least 1.95.7 or higher but recommend 2.0.0.
-4) Probably the last release unless somebody wants to take the reins.
-
 
 Release 0.6
 =====================================
 
-The Expat XML parsing library 1.95.2 is required.  You can download it
+The Expat XML parsing library 2.2.0 is required.  You can download it
 from expat.sourceforge.net. See below.
 
 Major changes in this release:
@@ -94,10 +85,10 @@ HOW TO DOWNLOAD AND BUILD EXPAT
 
 For Linux :
 	Download source from:
-		http://prdownloads.sourceforge.net/expat/expat-1.95.2.tar.gz
+		http://prdownloads.sourceforge.net/expat/expat-2.2.0.tar.gz
 	
-	tar xzf expat-1.95.2.tar.gz
-	cd expat-1.95.2
+	tar xzf expat-2.2.0.tar.gz
+	cd expat-2.2.0
 	./configure
 	make
 	make install (must be root to install into /usr/local)
@@ -109,7 +100,7 @@ For Win32 :
 	Run the program.  The EasySoap++ project file is set up to look
 	for Expat in a directory parallel to EasySoap++-0.5.  So if you
 	unpacked EasySoap++-0.5 into C:\code\EasySoap++-0.5 then install
-	Expat into C:\code\Expat-1.95.2.  Otherwise you will have to modify
+	Expat into C:\code\Expat-2.2.0.  Otherwise you will have to modify
 	the project settings to find the necessary include files.
 
 	Before running any of the example programs, you will need to make sure
@@ -119,13 +110,13 @@ For Win32 :
 	1)  Copy Expat.DLL to the EasySoap++-0.5\win32\Release directory
 		(or Debug directory).
 	2)  Change your PATH environment variable to include the
-		Expat-1.95.2\libs directory.  The easiest way to do this is
+		Expat-2.2.0\libs directory.  The easiest way to do this is
 		to go to right click on "My Computer/Properties," select the
 		"Advacned" tab, then press the "Environment Variables..." button.
 		In there edit the value for PATH.
 
 For Cygwin:
-	I had trouble getting 1.95.2 to link properly with Cygwin.  I had to
+	I had trouble getting 2.2.0 to link properly with Cygwin.  I had to
 	make a small change to expat.h.in.  Take a look here for details:
 
 		http://sourceforge.net/tracker/index.php?func=detail&aid=454879&group_id=10127&atid=110127

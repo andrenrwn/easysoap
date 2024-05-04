@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: SOAPParameter.h,v 1.11 2004/03/16 22:40:15 dcrowley Exp $
+ * $Id: //depot/maint/bigip17.1.1.3/iControl/soap/EasySoap++-0.6.2/include/easysoap/SOAPParameter.h#1 $
  */
 
 
@@ -27,13 +27,67 @@
 #pragma warning (disable: 4786)
 #endif // _MSC_VER
 
+#include <list>
+#include <map>
 #include <easysoap/SOAP.h>
 #include <easysoap/SOAPNamespaces.h>
-#include <easysoap/SOAPPool.h>
 
 BEGIN_EASYSOAP_NAMESPACE
 
 class SOAPParameterHandler;
+
+class EASYSOAP_EXPORT SOAPAttribute
+{
+public:
+    SOAPAttribute(void)
+    {
+    }
+    
+    SOAPAttribute(const SOAPQName& name) :
+        m_name(name)
+    {
+    }
+    
+    SOAPAttribute(const SOAPQName& name, const SOAPQName& value) :
+        m_name(name), m_value(value)
+    {
+    }
+    
+	SOAPAttribute& operator=(const SOAPAttribute& attribute)
+    {
+        m_name = attribute.m_name;
+        m_value = attribute.m_value;
+        return *this;
+    }
+
+    const SOAPQName&
+    GetName(void) const
+    {
+        return m_name;
+    }
+
+    void
+    SetValue(const SOAPQName& value)
+    {
+        m_value = value;
+    }
+
+    SOAPQName&
+    GetValue(void)
+    {
+        return m_value;
+    }
+
+    const SOAPQName&
+    GetValue(void) const
+    {
+        return m_value;
+    }
+
+private:
+    SOAPQName m_name;
+    SOAPQName m_value;    
+};
 
 /**
 *
@@ -42,28 +96,29 @@ class EASYSOAP_EXPORT SOAPParameter
 {
 public:
 
-	typedef SOAPArray<SOAPParameter*>				Array;
-	typedef SOAPHashMap<SOAPString, SOAPParameter*>	Struct;
-	typedef SOAPHashMap<SOAPQName, SOAPQName>		Attrs;
-	typedef SOAPPool<SOAPParameter> 				Pool;
+	typedef std::list<SOAPParameter> Params;
+	typedef std::list<SOAPAttribute> Attrs;
 
-	SOAPParameter();
+	SOAPParameter(void);
+    SOAPParameter(const SOAPString& name);
+    SOAPParameter(const SOAPQName& name);
 	SOAPParameter(const SOAPParameter& param);
 	virtual ~SOAPParameter();
 
+    void Clear(void);
+
 	SOAPParameter& operator=(const SOAPParameter& param);
-
-
-	void Reset();		// clears value and name
-	void ClearValue();	// clears just the value
 
 	SOAPQName& GetName()					{return m_name;}
 	const SOAPQName& GetName() const		{return m_name;}
 
 	void SetName(const SOAPQName& name)		{m_name = name;}
+	void SetName(const SOAPString& name)	{m_name = name;}
 	void SetName(const char *name, const char *ns = 0);
 
 	void SetType(const char *name, const char *ns = 0);
+	void SetType(const SOAPString& name, const SOAPString& ns);
+	void SetType(const SOAPQName& type);
 
 	void SetValue(bool val);
 	void SetBoolean(const char *val);
@@ -74,10 +129,20 @@ public:
 	void SetValue(double val);
 	void SetDouble(const char *val);
 
+	void SetValue(long val);
+	void SetLong(const char *val);
+	void SetValue(unsigned long val);
+	void SetULong(const char *val);
+	void SetValue(int64_t val); // 64 bit support
+	void SetInt64(const char *val);
+	void SetValue(u_int64_t val);
+	void SetUInt64(const char *val);
+
 	void SetValue(const char *val);
 #ifdef HAVE_WCHART
 	void SetValue(const wchar_t *val);
 #endif // HAVE_WCHART
+	void SetValue(const SOAPString& val);
 
 
 	bool GetBoolean() const;
@@ -94,32 +159,37 @@ public:
 	const SOAPString& GetString() const;
 	operator const SOAPString&() const		{return GetString();}
 
-	Array& GetArray()
+	long GetLong() const;
+	operator long() const           {return GetLong();}
+
+	unsigned long GetULong() const;
+	operator unsigned long() const          {return GetULong();}
+
+	int64_t GetInt64() const;
+	operator int64_t() const                {return GetInt64();}
+
+	u_int64_t GetUInt64() const;
+	operator u_int64_t() const              {return GetUInt64();}
+
+	Params& GetParams()
 	{
-		return m_dataPtr->m_array;
+		return m_dataPtr->m_params;
 	}
 
-	const Array& GetArray() const
+	const Params& GetParams() const
 	{
-		return m_dataPtr->m_array;
+		return m_dataPtr->m_params;
 	}
 
-	Struct& GetStruct();
-	const Struct& GetStruct() const;
-
-	SOAPParameter& AddParameter(const char *name = "item", const char *ns = 0);
+	SOAPParameter& AddParameter(const char *name,  const char *ns = 0);
+    SOAPParameter& AddParameter(const SOAPString& name = m_defaultName);
+	SOAPParameter& AddParameter(const SOAPString& name, const SOAPString& ns);
 	SOAPParameter& AddParameter(const SOAPQName& name);
 	SOAPParameter& AddParameter(const SOAPParameter& p);
 
-	const SOAPParameter* FindParameter(const char *) const;
-	const SOAPParameter& GetParameter(const char *) const;
-	const SOAPParameter& GetParameter(size_t i) const
-	{
-		if (i >= m_dataPtr->m_array.Size())
-			throw SOAPException("Array index out of bounds while trying to access  element %u (out of %u) on parameter %s.",
-				i, m_dataPtr->m_array.Size(), (const char *)GetName().GetName());
-		return *m_dataPtr->m_array[i];
-	}
+	const SOAPParameter& GetParameter(const char *name) const;
+	const SOAPParameter& GetParameter(const SOAPString &name) const;
+    SOAPParameter* FindParameter(const char* name) const;
 
 	void SetNull(bool isnull = true);
 	void SetIsStruct();
@@ -130,7 +200,12 @@ public:
 	Attrs& GetAttributes() {return m_dataPtr->m_attrs;}
 	const Attrs& GetAttributes() const {return m_dataPtr->m_attrs;}
 	const Attrs& GetAccessorAttributes() const {return m_x_data.m_attrs;}
-	SOAPQName& AddAttribute(const SOAPQName& name);
+	SOAPAttribute& AddAttribute(const SOAPQName& name);
+	SOAPAttribute& AddAttribute(const SOAPQName& name, const SOAPQName& value);
+    SOAPAttribute* FindAttribute(const char* name) const;
+    SOAPAttribute* FindAttribute(const SOAPQName& name) const;
+    SOAPAttribute* FindAccessorAttribute(const char* name) const;
+    SOAPAttribute* FindAccessorAttribute(const SOAPQName& name) const;
 
 	//
 	// Use this to get access to the underlying string.
@@ -145,38 +220,38 @@ public:
 	}
 
 private:
-	void SetParent(SOAPParameter *parent) {m_parent = parent;}
 	void Assign(const SOAPParameter&);
-	void CheckStructSync() const;
 
 	class Data
 	{
 	public:
-		Data() : m_isstruct(false), m_outtasync(false) {}
-		~Data() {}
+		Data() : m_isstruct(false) {}
+		~Data();
 
-		void Clear(Pool&);
-		void Assign(SOAPParameter *parent, const Data&);
+        void Clear(void);
+
+		void Assign(const Data&);
 
 		bool			m_isstruct;	// true for array, struct types
 		SOAPString		m_strval;	// value legal only if m_isstruct == false
 
-		Array			m_array;
+	 	Params  		m_params;
 		Attrs			m_attrs;
-		mutable Struct	m_struct;
-		mutable bool	m_outtasync;// true if we need to resynch the hashmap to the array
 	private:
 		Data& operator=(const Data&);
 		Data(const Data&);
 	};
 
-	friend class EASYSOAP_NAMESPACE(SOAPParameter::Data);
+	friend class Data;
 
-	Pool			m_pool;
-	SOAPParameter	*m_parent;
 	SOAPQName		m_name;
 	Data			m_x_data;	// Don't use this directly!
-	Data			*m_dataPtr;
+    Data*           m_dataPtr;
+
+public:
+    static const SOAPString m_defaultName;
+    static const SOAPString m_true;
+    static const SOAPString m_false;
 };
 
 END_EASYSOAP_NAMESPACE
@@ -194,9 +269,8 @@ operator<<(SOAPParameter& param, const T& val)
 	// class then you will have to implement it.
 	// Look in SOAPTypeTraits.h for examples.
 	//
-	param.ClearValue();
 	// Add xsi:type attribute
-	SOAPTypeTraits<T>::GetType(param.AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<T>::GetType(param.AddAttribute(XMLSchema2001::type).GetValue());
 	// serialize
 	return SOAPTypeTraits<T>::Serialize(param, val);
 }
@@ -220,8 +294,7 @@ operator>>(const SOAPParameter& param, T& val)
 inline SOAPParameter&
 operator<<(SOAPParameter& param, const char *val)
 {
-	param.ClearValue();
-	SOAPTypeTraits<const char *>::GetType(param.AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<const char *>::GetType(param.AddAttribute(XMLSchema2001::type).GetValue());
 	return SOAPTypeTraits<const char *>::Serialize(param, val);
 }
 
@@ -229,8 +302,7 @@ operator<<(SOAPParameter& param, const char *val)
 inline SOAPParameter&
 operator<<(SOAPParameter& param, const wchar_t *val)
 {
-	param.ClearValue();
-	SOAPTypeTraits<const wchar_t *>::GetType(param.AddAttribute(XMLSchema2001::type));
+	SOAPTypeTraits<const wchar_t *>::GetType(param.AddAttribute(XMLSchema2001::type).GetValue());
 	return SOAPTypeTraits<const wchar_t *>::Serialize(param, val);
 }
 #endif
